@@ -148,7 +148,7 @@
         if (res.ok || res.type === 'opaque') {
           var newUrl = currentUrl;
           if (code) {
-            newUrl += 'register?code=' + encodeURIComponent(code);
+            newUrl += 'index.php#/register?code=' + encodeURIComponent(code);
           }
           window.location.href = newUrl;
           return;
