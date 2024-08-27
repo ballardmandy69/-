@@ -179,6 +179,7 @@ EOF
     net.ipv4.tcp_wmem=4096 16384 33554432
     net.ipv4.udp_rmem_min=8192
     net.ipv4.udp_wmem_min=8192
+    net.core.netdev_budget=3000
     net.ipv4.tcp_mem=3145728 3932160 4718592
     net.ipv4.udp_mem=262144 1048576 4194304
     net.ipv4.tcp_congestion_control=bbr
