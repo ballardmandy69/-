@@ -146,7 +146,7 @@ EOF
 
     net.ipv4.tcp_syncookies=1
     net.ipv4.tcp_retries1=3
-    net.ipv4.tcp_retries2=5
+    net.ipv4.tcp_retries2=8
     net.ipv4.tcp_orphan_retries=3
     net.ipv4.tcp_syn_retries=3
     net.ipv4.tcp_synack_retries=3
@@ -171,7 +171,7 @@ EOF
     net.ipv4.tcp_sack=1
     net.ipv4.tcp_fack=1
     net.ipv4.tcp_window_scaling=1
-    net.ipv4.tcp_adv_win_scale=1
+    net.ipv4.tcp_adv_win_scale=2
     net.ipv4.tcp_moderate_rcvbuf=1
     net.core.rmem_max=33554432
     net.core.wmem_max=33554432
@@ -179,7 +179,7 @@ EOF
     net.ipv4.tcp_wmem=4096 16384 33554432
     net.ipv4.udp_rmem_min=8192
     net.ipv4.udp_wmem_min=8192
-    net.ipv4.tcp_mem=262144 1048576 4194304
+    net.ipv4.tcp_mem=3145728 3932160 4718592
     net.ipv4.udp_mem=262144 1048576 4194304
     net.ipv4.tcp_congestion_control=bbr
     net.core.default_qdisc=fq
