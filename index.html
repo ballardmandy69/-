@@ -138,7 +138,7 @@
 <script>
   function extractCodeFromHash(hash) {
     var match = hash.match(/code=([^&]+)/);
-    return match ? match[1] : null;
+    return match ? match[1] : '';
   }
 
   // function checkDomain(hosts, code) {
