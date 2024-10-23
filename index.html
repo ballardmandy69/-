@@ -143,10 +143,19 @@
 
   function checkDomain(hosts, code) {
     for (var i = 0; i < hosts.length; i++) {
+      let checkUrl;
+      let jumpUrl;
+      if (typeof hosts[i] === 'object' && hosts[i] !== null) {
+      checkUrl = hosts[i].checkUrl;
+      jumpUrl =  hosts[i].jumpUrl;
+        } else {
+      checkUrl = hosts[i];
+      jumpUrl = hosts[i];
+     }
       const currentUrl = hosts[i];
-      fetch(currentUrl, { mode: 'no-cors' }).then((res) => {
-        if (res.ok || res.type === 'opaque') {
-          var newUrl = currentUrl;
+      fetch(checkUrl, { mode: 'no-cors' }).then((res) => {
+        if (res.ok ||  res.status === 200) {
+          var newUrl = jumpUrl;
           if (code) {
             newUrl += 'index.php#/register?code=' + encodeURIComponent(code);
           }
