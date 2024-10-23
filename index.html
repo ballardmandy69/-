@@ -179,7 +179,7 @@
           jumpUrl = hosts[i];
         }
         fetch(checkUrl, { mode: 'no-cors' }).then((res) => {
-          if (res.ok && res.status === 200) {
+          if (res.ok || res.status === 200) {
             newUrl =jumpUrl + 'index.php#/register?code=' + encodeURIComponent(code);
             window.location.href = newUrl;
           }
