@@ -141,33 +141,53 @@
     return match ? match[1] : null;
   }
 
-  function checkDomain(hosts, code) {
-    for (var i = 0; i < hosts.length; i++) {
-      let checkUrl;
-      let jumpUrl;
-      if (typeof hosts[i] === 'object' && hosts[i] !== null) {
-      checkUrl = hosts[i].checkUrl;
-      jumpUrl =  hosts[i].jumpUrl;
+  // function checkDomain(hosts, code) {
+  //   for (var i = 0; i < hosts.length; i++) {
+  //     let checkUrl;
+  //     let jumpUrl;
+  //     if (typeof hosts[i] === 'object' && hosts[i] !== null) {
+  //     checkUrl = hosts[i].checkUrl;
+  //     jumpUrl =  hosts[i].jumpUrl;
+  //       } else {
+  //     checkUrl = hosts[i];
+  //     jumpUrl = hosts[i];
+  //    }
+  //     const currentUrl = hosts[i];
+  //     fetch(checkUrl, { mode: 'no-cors' }).then((res) => {
+  //       if (res.ok ||  res.status === 200) {
+  //         var newUrl = jumpUrl;
+  //         if (code) {
+  //           newUrl += 'index.php#/register?code=' + encodeURIComponent(code);
+  //         }
+  //         window.location.href = newUrl;
+  //         return;
+  //       }
+  //     }).catch((error) => {
+  //       console.error('Error checking domain:', error);
+  //     });
+  //   }
+  // }
+    function checkDomain(hosts) {
+      for (var i = 0; i < hosts.length; i++) {
+        let checkUrl;
+        let jumpUrl;
+        if (typeof hosts[i] === 'object' && hosts[i] !== null) {
+          checkUrl = hosts[i].checkUrl;
+          jumpUrl =  hosts[i].jumpUrl;
         } else {
-      checkUrl = hosts[i];
-      jumpUrl = hosts[i];
-     }
-      const currentUrl = hosts[i];
-      fetch(checkUrl, { mode: 'no-cors' }).then((res) => {
-        if (res.ok ||  res.status === 200) {
-          var newUrl = jumpUrl;
-          if (code) {
-            newUrl += 'index.php#/register?code=' + encodeURIComponent(code);
-          }
-          window.location.href = newUrl;
-          return;
+          checkUrl = hosts[i];
+          jumpUrl = hosts[i];
         }
-      }).catch((error) => {
-        console.error('Error checking domain:', error);
-      });
-    }
-  }
+        fetch(checkUrl).then((res) => {
+          if (res.ok && res.status === 200) {
+            newUrl += 'index.php#/register?code=' + encodeURIComponent(code);
+            window.location.href = newUrl;
+          }
+        });
+      }
 
+
+  
   fetch("./data.json?t=" + Date.now())
     .then((res) => res.json())
     .then((data) => {
