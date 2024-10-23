@@ -1,1 +1,6 @@
-["https://user.yesha.pro/"]
+[
+  {
+    "checkUrl": "https://dash.loveyesha.com/api/v1/guest/comm/config",
+    "jumpUrl": "https://dash.loveyesha.com/"
+  }
+]
