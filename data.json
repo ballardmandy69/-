@@ -1,8 +1,8 @@
 [
   {
-    "checkUrl": "https://dash.loveyesha.com/api/v1/guest/comm/config",
-    "jumpUrl": "https://dash.loveyesha.com/"
+    "checkUrl": "https://a.loveyesha.com/api/v1/guest/comm/config",
+    "jumpUrl": "https://a.loveyesha.com/"
   },
   "https://user.yesha.pro/",
-  "https://user.loveyesha.com/"
+  "https://go.loveyesha.com/"
 ]
