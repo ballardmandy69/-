@@ -3,6 +3,11 @@
     "checkUrl": "https://a.loveyesha.com/api/v1/guest/comm/config",
     "jumpUrl": "https://a.loveyesha.com/"
   },
-  "https://a.yesha.pro/",
-  "https://v.loveyesha.com/"
+{
+    "checkUrl": "https://a.yesha.pro/api/v1/guest/comm/config",
+    "jumpUrl": https://a.yesha.pro/"
+  },{
+    "checkUrl": "https://v.loveyesha.com/api/v1/guest/comm/config",
+    "jumpUrl": "https://v.loveyesha.com/"
+  }
 ]
