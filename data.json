@@ -1,5 +1,8 @@
 [
-
+  {
+    "checkUrl": "https://a.loveyesha.com/api/v1/guest/comm/config",
+    "jumpUrl": "https://a.loveyesha.com/"
+  },
 {
     "checkUrl": "https://a.yesha.pro/api/v1/guest/comm/config",
     "jumpUrl": "https://a.yesha.pro/"
