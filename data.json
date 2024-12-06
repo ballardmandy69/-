@@ -2,12 +2,5 @@
   {
     "checkUrl": "aHR0cHM6Ly9hLmxvdmV5ZXNoYS5jb20vYXBpL3YxL2d1ZXN0L2NvbW0vY29uZmlnCg==",
     "jumpUrl": "aHR0cHM6Ly9hLmxvdmV5ZXNoYS5jb20v"
-  },
-{
-    "checkUrl": "https://a.yesha.pro/api/v1/guest/comm/config",
-    "jumpUrl": "https://a.yesha.pro/"
-  },{
-    "checkUrl": "https://v.loveyesha.com/api/v1/guest/comm/config",
-    "jumpUrl": "https://v.loveyesha.com/"
   }
 ]
