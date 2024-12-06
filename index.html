@@ -167,26 +167,49 @@
   //     });
   //   }
   // }
-    function checkDomain(hosts,code) {
-      for (var i = 0; i < hosts.length; i++) {
-        let checkUrl;
-        let jumpUrl;
-        if (typeof hosts[i] === 'object' && hosts[i] !== null) {
-          checkUrl = hosts[i].checkUrl;
-          jumpUrl =  hosts[i].jumpUrl;
-        } else {
-          checkUrl = hosts[i];
-          jumpUrl = hosts[i];
-        }
-        fetch(checkUrl).then((res) => {
-          if (res.ok || res.status === 200) {
-            newUrl =jumpUrl + 'index.php#/register?code=' + encodeURIComponent(code);
-            window.location.href = newUrl;
-          }
-        });
-      }
+    // function checkDomain(hosts,code) {
+    //   for (var i = 0; i < hosts.length; i++) {
+    //     let checkUrl;
+    //     let jumpUrl;
+    //     if (typeof hosts[i] === 'object' && hosts[i] !== null) {
+    //       checkUrl = hosts[i].checkUrl;
+    //       jumpUrl =  hosts[i].jumpUrl;
+    //     } else {
+    //       checkUrl = hosts[i];
+    //       jumpUrl = hosts[i];
+    //     }
+    //     fetch(checkUrl).then((res) => {
+    //       if (res.ok || res.status === 200) {
+    //         newUrl =jumpUrl + 'index.php#/register?code=' + encodeURIComponent(code);
+    //         window.location.href = newUrl;
+    //       }
+    //     });
+    //   }
+    // }
+function checkDomain(hosts, code) {
+  for (var i = 0; i < hosts.length; i++) {
+    let checkUrl;
+    let jumpUrl;
+    
+    if (typeof hosts[i] === 'object' && hosts[i] !== null) {
+      // 解码 Base64 编码的 URL
+      checkUrl = atob(hosts[i].checkUrl);  
+      jumpUrl = atob(hosts[i].jumpUrl);
+    } else {
+      // 如果没有对象，直接处理
+      checkUrl = atob(hosts[i]);
+      jumpUrl = atob(hosts[i]);
     }
 
+    fetch(checkUrl).then((res) => {
+      if (res.ok || res.status === 200) {
+        // 加入 code 并跳转
+        let newUrl = jumpUrl + 'index.php#/register?code=' + encodeURIComponent(code);
+        window.location.href = newUrl;
+      }
+    });
+  }
+}
   
   fetch("./data.json?t=" + Date.now())
     .then((res) => res.json())
