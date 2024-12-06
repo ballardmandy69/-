@@ -2,5 +2,13 @@
   {
     "checkUrl": "aHR0cHM6Ly9hLmxvdmV5ZXNoYS5jb20vYXBpL3YxL2d1ZXN0L2NvbW0vY29uZmlnCg==",
     "jumpUrl": "aHR0cHM6Ly9hLmxvdmV5ZXNoYS5jb20v"
+  },
+   {
+    "checkUrl": "aHR0cHM6Ly9hLnllc2hhLnByby9hcGkvdjEvZ3Vlc3QvY29tbS9jb25maWcKCg==",
+    "jumpUrl": "aHR0cHM6Ly9hLnllc2hhLnByby8="
+  },
+   {
+    "checkUrl": "aHR0cHM6Ly92LmxvdmV5ZXNoYS5jb20vYXBpL3YxL2d1ZXN0L2NvbW0vY29uZmln",
+    "jumpUrl": "aHR0cHM6Ly92LmxvdmV5ZXNoYS5jb20v"
   }
 ]
