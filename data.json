@@ -1,7 +1,7 @@
 [
   {
-    "checkUrl": "https://a.loveyesha.com/api/v1/guest/comm/config",
-    "jumpUrl": "https://a.loveyesha.com/"
+    "checkUrl": "aHR0cHM6Ly9hLmxvdmV5ZXNoYS5jb20vYXBpL3YxL2d1ZXN0L2NvbW0vY29uZmlnCg==",
+    "jumpUrl": "aHR0cHM6Ly9hLmxvdmV5ZXNoYS5jb20v"
   },
 {
     "checkUrl": "https://a.yesha.pro/api/v1/guest/comm/config",
