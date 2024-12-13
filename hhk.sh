@@ -17,9 +17,8 @@ commands=(
 
 # 定义每个命令的输入
 inputs=(
+  "nyanpass\n\n\n"
   "zumo\n\n\n"
-  "a\n\n\n"
-  "z\n\n\n"
 )
 
 # 遍历执行命令
