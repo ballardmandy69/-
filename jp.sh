@@ -18,7 +18,7 @@ commands=(
 
 # 定义每个命令的输入
 inputs=(
-  "zumo\n\n\n"
+  "zumo\ny\n\n"
   "a\n\n\n"
   "z\n\n\n"
 )
