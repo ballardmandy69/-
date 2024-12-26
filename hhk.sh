@@ -17,7 +17,7 @@ commands=(
 
 # 定义每个命令的输入
 inputs=(
-  "nyanpass\n\n\n"
+  "nyanpass\ny\n\n"
   "zumo\n\n\n"
 )
 
