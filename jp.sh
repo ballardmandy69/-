@@ -38,10 +38,10 @@ chmod +x $SCRIPT_NAME
 ./$SCRIPT_NAME
 
 sysctl -w net.core.default_qdisc=fq
-sysctl -w net.ipv4.tcp_adv_win_scale=-1
+sysctl -w net.ipv4.tcp_adv_win_scale=2
 sysctl -w net.ipv4.tcp_reordering=50
 sysctl -w net.ipv4.tcp_max_reordering=300
-sysctl -w net.ipv4.tcp_notsent_lowat=32767
+sysctl -w net.ipv4.tcp_notsent_lowat=32768
 sysctl -w net.ipv4.tcp_retries1=3
 sysctl -w net.ipv4.tcp_retries2=3
 sysctl -w net.core.rmem_max=33554432
