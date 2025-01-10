@@ -36,7 +36,8 @@ chmod +x $SCRIPT_NAME
 
 # 执行生成的脚本
 ./$SCRIPT_NAME
-
+sysctl -w net.core.netdev_budget=2048
+sysctl -w net.core.netdev_budget_usecs=5000
 sysctl -w net.core.default_qdisc=fq
 sysctl -w net.ipv4.tcp_adv_win_scale=2
 sysctl -w net.ipv4.tcp_reordering=50
