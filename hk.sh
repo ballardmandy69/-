@@ -37,6 +37,8 @@ chmod +x $SCRIPT_NAME
 # 执行生成的脚本
 ./$SCRIPT_NAME
 
+sysctl -w net.ipv4.tcp_ecn=0
+sysctl -w net.ipv4.tcp_frto=0
 sysctl -w net.core.netdev_budget=2048
 sysctl -w net.core.netdev_budget_usecs=12000
 sysctl -w net.core.default_qdisc=fq
@@ -53,4 +55,5 @@ sysctl -w net.ipv4.tcp_wmem="8192 262144  33554432"
 sysctl -w net.ipv4.tcp_mem="31457280 39321600 47185920"
 tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
+
 
