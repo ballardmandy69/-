@@ -43,7 +43,6 @@ sysctl -w net.ipv4.tcp_frto=0
 sysctl -w net.core.netdev_budget=2048
 sysctl -w net.core.netdev_budget_usecs=12000
 sysctl -w net.core.default_qdisc=fq
-sysctl -w net.ipv4.tcp_adv_win_scale=-1
 sysctl -w net.ipv4.tcp_reordering=50
 sysctl -w net.ipv4.tcp_max_reordering=300
 sysctl -w net.ipv4.tcp_notsent_lowat=32768
