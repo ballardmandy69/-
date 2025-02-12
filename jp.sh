@@ -36,8 +36,6 @@ chmod +x $SCRIPT_NAME
 
 # 执行生成的脚本
 ./$SCRIPT_NAME
-sysctl -w net.ipv4.tcp_comp_sack_nr=64
-sysctl -w net.ipv4.tcp_limit_output_bytes=1048576
 sysctl -w net.ipv4.tcp_fastopen_key="12345678-87654321-12345678-87654321"
 sysctl -w net.ipv4.tcp_fastopen=3
 sysctl -w net.ipv4.tcp_ecn=0
