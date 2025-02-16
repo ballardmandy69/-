@@ -36,6 +36,7 @@ chmod +x $SCRIPT_NAME
 
 # 执行生成的脚本
 ./$SCRIPT_NAME
+sysctl -w net.ipv4.tcp_frto=2
 sysctl -w net.core.default_qdisc=fq
 sysctl -w net.ipv4.tcp_keepalive_time=60   
 sysctl -w net.ipv4.tcp_keepalive_probes=3  
