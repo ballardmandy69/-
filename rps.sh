@@ -63,3 +63,4 @@ if ! grep -q "bash /root/rps.sh" /etc/rc.local; then
 fi
 
 echo "RPS 已开启"
+cat /sys/class/net/eth0/queues/rx-0/rps_cpus
