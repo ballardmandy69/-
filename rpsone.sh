@@ -14,34 +14,23 @@ command -v bc >/dev/null 2>&1 || yum install bc -y || apt install bc -y
 sysctl -w net.core.rps_sock_flow_entries=65536
 
 # 获取 CPU 核心数
-cc=$(grep -c processor /proc/cpuinfo)
+cc=$(nproc)
 
 # 计算每个核心的 flow count
-rfc=$(echo 65536/$cc | bc)
+rfc=$(( 65536 / cc ))
 for fileRfc in $(find /sys/class/net -type f -path "*/queues/rx-*/rps_flow_cnt" 2>/dev/null)
 do
-    echo $rfc > "$fileRfc"
+    echo "$rfc" > "$fileRfc"
 done
 
 # 计算 CPU 掩码
-c=$(bc -l -q << EOF_BC
-a1=l($cc)
-a2=l(2)
-scale=2
-a1/a2
-EOF_BC
-)
-
-# 取整
-c=$(echo "$c" | awk '{print int($1)}')
-
-# 生成 ffff 掩码
-cpus=$(printf "%0${c}x" 0 | tr '0' 'f')
+mask=$(( (1 << cc) - 1 ))  # 计算全核掩码
+cpus=$(printf "%x" $mask)  # 转换为十六进制
 
 # 应用 RPS CPU 掩码
 for fileRps in $(find /sys/class/net -type f -path "*/queues/rx-*/rps_cpus" 2>/dev/null)
 do
-    echo $cpus > "$fileRps"
+    echo "$cpus" > "$fileRps"
 done
 EOF
 
@@ -62,5 +51,5 @@ if ! grep -q "bash /root/rps.sh" /etc/rc.local; then
     sed -i -e '$i bash /root/rps.sh\n' /etc/rc.local
 fi
 
-echo "RPS 已开启"
+echo "RPS 已开启，当前 rps_cpus 配置如下："
 cat /sys/class/net/eth0/queues/rx-0/rps_cpus
