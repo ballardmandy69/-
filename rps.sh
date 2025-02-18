@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 定义脚本路径
-SCRIPT_NAME="one_click_script.sh"
+SCRIPT_NAME="rps.sh"
 
 # 写入脚本内容
 cat > $SCRIPT_NAME << 'EOF'
