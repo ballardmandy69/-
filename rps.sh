@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# 定义脚本路径
+SCRIPT_NAME="one_click_script.sh"
+
+# 写入脚本内容
+cat > $SCRIPT_NAME << 'EOF'
+#!/bin/bash
+
 # 确保 bc 已安装
 command -v bc >/dev/null 2>&1 || yum install bc -y || apt install bc -y
 
@@ -38,7 +45,13 @@ do
     echo $cpusss > "$fileRps"
     echo $cpussss > "$fileRps"
 done
+EOF
 
+# 赋予脚本可执行权限
+chmod +x $SCRIPT_NAME
+
+# 执行生成的脚本
+./$SCRIPT_NAME
 
 bash /root/rps.sh
 sed -i '/bash \/root\/rps.sh/d' /etc/rc.local
