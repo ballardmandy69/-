@@ -36,13 +36,16 @@ chmod +x $SCRIPT_NAME
 
 # 执行生成的脚本
 ./$SCRIPT_NAME
-sysctl -w net.ipv4.tcp_frto=2
 sysctl -w net.core.default_qdisc=fq
-sysctl -w net.ipv4.tcp_keepalive_time=60   
-sysctl -w net.ipv4.tcp_keepalive_probes=3  
-sysctl -w net.ipv4.tcp_keepalive_intvl=10 
+sysctl -w net.ipv4.tcp_notsent_lowat=16384
+sysctl -w net.ipv4.tcp_limit_output_bytes=1048576
+sysctl -w net.ipv4.tcp_min_rtt_wlen=75
+sysctl -w net.ipv4.tcp_tso_win_divisor=2
+sysctl -w net.ipv4.tcp_slow_start_after_idle=0
+sysctl -w net.ipv4.tcp_max_syn_backlog=524288
+sysctl -w net.core.somaxconn=524288
 sysctl -w net.ipv4.tcp_adv_win_scale=2
-sysctl -w net.ipv4.tcp_notsent_lowat=32768
+sysctl -w net.ipv4.tcp_autocorking=0
 sysctl -w net.ipv4.tcp_retries1=3
 sysctl -w net.ipv4.tcp_retries2=5
 sysctl -w net.core.rmem_max=33554432
@@ -50,6 +53,7 @@ sysctl -w net.core.wmem_max=33554432
 sysctl -w net.ipv4.tcp_rmem="8192 262144 33554432"
 sysctl -w net.ipv4.tcp_wmem="8192 262144 33554432"
 sysctl -w net.ipv4.tcp_mem="31457280 39321600 47185920"
+sysctl -w net.ipv4.tcp_frto=2
 tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
 tc -s qdisc show dev ens5
