@@ -14,6 +14,7 @@ commands=(
   "bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient \"-o -t 14088747-463d-4545-9134-fc3c555c9afd -u https://zumo.moe\""
   "bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient \"-o -t 7962b5dd-f3d6-40bc-999b-39b90598b7b0 -u https://zumo.moe\""
   "bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient \"-o -t 143d235b-313b-457e-9278-858294082457 -u https://ny.hiccupc.xyz\""
+  "bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient "-o -t 8c7882c6-3fcb-4cd3-81a1-b4937d550b5f -u https://zumo.moe""
 )
 
 # 定义每个命令的输入
@@ -21,6 +22,7 @@ inputs=(
   "zumo\ny\n\n"
   "a\n\n\n"
   "z\n\n\n"
+  "e\n\n\n"
 )
 
 # 遍历执行命令
