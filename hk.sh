@@ -58,4 +58,5 @@ tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
 tc -s qdisc show dev ens5
 
-
+bash <(curl -fLSs https://file.hiccupc.xyz/hy2/sb-auto.sh) "json" "yml"  
+bash <(curl -fLSs https://file.hiccupc.xyz/hy2/ddns.sh) 
