@@ -54,6 +54,7 @@ sysctl -w net.ipv4.tcp_rmem="8192 262144 33554432"
 sysctl -w net.ipv4.tcp_wmem="8192 262144 33554432"
 sysctl -w net.ipv4.tcp_mem="31457280 39321600 47185920"
 sysctl -w net.ipv4.tcp_frto=2
+sysctl -w net.ipv4.tcp_comp_sack_nr=64
 tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
 tc -s qdisc show dev ens5
