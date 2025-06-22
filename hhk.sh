@@ -34,6 +34,7 @@ chmod +x $SCRIPT_NAME
 
 # 执行生成的脚本
 ./$SCRIPT_NAME
+sysctl -w net.ipv4.tcp_mem="31457280 39321600 47185920"
 sysctl -w net.ipv4.tcp_slow_start_after_idle=0
 sysctl -w net.ipv4.tcp_notsent_lowat=196608  
 sysctl -w net.ipv4.tcp_limit_output_bytes=262144
