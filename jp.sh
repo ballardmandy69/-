@@ -44,19 +44,21 @@ sysctl -w net.ipv4.tcp_mem="31457280 39321600 47185920"
 sysctl -w net.ipv4.tcp_slow_start_after_idle=0
 sysctl -w net.ipv4.tcp_notsent_lowat=98304
 sysctl -w net.ipv4.tcp_limit_output_bytes=1048576 
-sysctl -w net.core.wmem_max=16777216     
-sysctl -w net.ipv4.tcp_wmem="4096 131072 16777216"
-sysctl -w net.core.rmem_max=16777216  
-sysctl -w net.ipv4.tcp_rmem="4096 262144 16777216"
-sysctl -w net.ipv4.tcp_early_retrans=2   
-sysctl -w net.ipv4.tcp_recovery=1       
-sysctl -w net.ipv4.tcp_retries2=5       
-sysctl -w net.ipv4.tcp_frto=2     
-sysctl -w net.ipv4.tcp_reordering=30    
-sysctl -w net.ipv4.tcp_dsack=1        
+sysctl -w net.core.rmem_max=33554432
+sysctl -w net.core.wmem_max=33554432
+sysctl -w net.ipv4.tcp_rmem="8192 262144 33554432"
+sysctl -w net.ipv4.tcp_wmem="4096 262144 33554432"
+sysctl -w net.ipv4.tcp_early_retrans=0
+sysctl -w net.ipv4.tcp_recovery=3      
+sysctl -w net.ipv4.tcp_retries1=2
+sysctl -w net.ipv4.tcp_retries2=5
+sysctl -w net.ipv4.tcp_syn_retries=3
+sysctl -w net.ipv4.tcp_frto=0
+sysctl -w net.ipv4.tcp_reordering=30  
+sysctl -w net.ipv4.tcp_dsack=1           
 sysctl -w net.ipv4.tcp_timestamps=1
 sysctl -w net.ipv4.tcp_rfc1337=1
-sysctl -w net.ipv4.tcp_sack=1
+sysctl -w net.ipv4.tcp_sack=1  
 tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
 tc -s qdisc show dev ens5
