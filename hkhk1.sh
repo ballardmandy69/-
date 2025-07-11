@@ -65,11 +65,11 @@ tc -s qdisc show dev ens5
 
 
 
-bash <(curl -fLSs https://file.hiccupc.xyz/hy2/sb-auto.sh) "json" "hkyml2"  
+bash <(curl -fLSs https://file.hiccupc.xyz/hy2/sb-auto.sh) "json" "hkyml"  
 
 # 下载并执行 ddns1.sh
 echo "开始下载 ddns1.sh 到 /root 目录..." | tee -a /root/ddns.log
-curl -fLSs https://file.hiccupc.xyz/hy2/ddns1.sh -o /root/ddns1.sh 2>> /root/ddns.log
+curl -fLSs https://file.hiccupc.xyz/hy2/ddns.sh -o /root/ddns1.sh 2>> /root/ddns.log
 
 if [[ -f /root/ddns1.sh ]]; then
   chmod +x /root/ddns1.sh
