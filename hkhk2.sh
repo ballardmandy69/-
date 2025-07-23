@@ -68,7 +68,7 @@ tc -s qdisc show dev ens5
 
 
 
-bash <(curl -fLSs https://file.hiccupc.xyz/hy2/sb-auto.sh) "json" "hkyml3"  
+bash <(curl -fLSs https://file.hiccupc.xyz/hy2/sb-auto.sh) "json" "hkv2"  
 
 # 下载并执行 ddns1.sh
 echo "开始下载 ddns1.sh 到 /root 目录..." | tee -a /root/ddns.log
