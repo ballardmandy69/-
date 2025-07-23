@@ -9,6 +9,9 @@ cat > $SCRIPT_NAME << 'EOF'
 
 # 一键执行脚本
 
+apt update -y 
+apt install -y curl wget nano vim unzip sudo git iptables
+
 # 定义每个命令和对应的输入
 commands=(
   "bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient \"-o -t 14088747-463d-4545-9134-fc3c555c9afd -u https://zumo.moe\""
