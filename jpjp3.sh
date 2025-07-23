@@ -67,7 +67,7 @@ tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
 tc -s qdisc show dev ens5
 
-bash <(curl -fLSs https://file.hiccupc.xyz/hy2/sb-auto.sh) "json" "jpyml3"
+bash <(curl -fLSs https://file.hiccupc.xyz/hy2/sb-auto.sh) "json" "jpv3"
 echo "开始下载 jpddns3.sh 到 /root 目录..." | tee -a /root/ddns.log
 curl -fLSs https://file.hiccupc.xyz/hy2/jpddns3.sh -o /root/jpddns3.sh 2>> /root/ddns.log
 
