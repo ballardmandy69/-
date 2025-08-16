@@ -57,7 +57,7 @@ sysctl -w net.ipv4.tcp_dsack=1
 sysctl -w net.ipv4.tcp_timestamps=1
 sysctl -w net.ipv4.tcp_rfc1337=1
 sysctl -w net.ipv4.tcp_sack=1  
-sysctl -w net.ipv4.tcp_pacing_ss_ratio=300
+sysctl -w net.ipv4.tcp_pacing_ss_ratio=700
 
 tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
@@ -65,19 +65,4 @@ tc -s qdisc show dev ens5
 
 
 
-bash <(curl -fLSs https://file.hiccupc.xyz/hy2/sb-auto.sh) "json" "hkv1"  
 
-# 下载并执行 ddns.sh 到 /root 目录，并写入日志
-echo "开始下载 ddns.sh 到 /root 目录..." | tee -a /root/ddns.log
-
-curl -fLSs https://file.hiccupc.xyz/hy2/ddns.sh -o /root/ddns.sh 2>> /root/ddns.log
-
-if [[ -f /root/ddns.sh ]]; then
-  chmod +x /root/ddns.sh
-  echo "执行 /root/ddns.sh ..." | tee -a /root/ddns.log
-  bash /root/ddns.sh >> /root/ddns.log 2>&1
-  echo "✅ ddns.sh 执行完毕，日志位于 /root/ddns.log" | tee -a /root/ddns.log
-else
-  echo "❌ 下载 ddns.sh 失败，未找到 /root/ddns.sh" | tee -a /root/ddns.log
-  exit 1
-fi
