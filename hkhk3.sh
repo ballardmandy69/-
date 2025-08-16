@@ -68,17 +68,17 @@ tc -s qdisc show dev ens5
 
 
 
-bash <(curl -fLSs https://file.hiccupc.xyz/hy2/sb-auto.sh) "json" "yml4"  
+bash <(curl -fLSs https://file.hiccupc.xyz/hy2/sb-auto.sh) "json" "hkv3"  
 
-echo "开始下载 ddns3.sh 到 /root 目录..." | tee -a /root/ddns.log
-curl -fLSs https://file.hiccupc.xyz/hy2/ddns3.sh -o /root/ddns3.sh 2>> /root/ddns.log
+echo "开始下载 ddns2.sh 到 /root 目录..." | tee -a /root/ddns.log
+curl -fLSs https://file.hiccupc.xyz/hy2/ddns2.sh -o /root/ddns2.sh 2>> /root/ddns.log
 
-if [[ -f /root/ddns3.sh ]]; then
-  chmod +x /root/ddns3.sh
-  echo "执行 /root/ddns3.sh ..." | tee -a /root/ddns.log
-  bash /root/ddns3.sh >> /root/ddns.log 2>&1
-  echo "✅ ddns3.sh 执行完毕" | tee -a /root/ddns.log
+if [[ -f /root/ddns2.sh ]]; then
+  chmod +x /root/ddns2.sh
+  echo "执行 /root/ddns2.sh ..." | tee -a /root/ddns.log
+  bash /root/ddns2.sh >> /root/ddns.log 2>&1
+  echo "✅ ddns2.sh 执行完毕" | tee -a /root/ddns.log
 else
-  echo "❌ 下载 ddns3.sh 失败，未找到 /root/ddns3.sh" | tee -a /root/ddns.log
+  echo "❌ 下载 ddns2.sh 失败，未找到 /root/ddns2.sh" | tee -a /root/ddns.log
   exit 1
 fi
