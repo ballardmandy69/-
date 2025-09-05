@@ -56,6 +56,7 @@ sysctl -w net.ipv4.tcp_timestamps=1
 sysctl -w net.ipv4.tcp_rfc1337=1
 sysctl -w net.ipv4.tcp_sack=1  
 sysctl -w net.ipv4.tcp_pacing_ss_ratio=300
+sysctl -w net.ipv4.tcp_pacing_ca_ratio=150
 
 tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
