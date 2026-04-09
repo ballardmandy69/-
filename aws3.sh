@@ -59,7 +59,7 @@ sysctl -w net.ipv4.tcp_no_metrics_save=1
 # 下载并执行 ddns.sh 到 /root 目录，并写入日志
 echo "开始下载 ddns.sh 到 /root 目录..." | tee -a /root/ddns.log
 
-curl -fLSs https://file.hiccupc.xyz/hy2/ddns1.sh -o /root/ddns.sh 2>> /root/ddns.log
+curl -fLSs https://file.hiccupc.xyz/hy2/ddns3.sh -o /root/ddns.sh 2>> /root/ddns.log
 
 if [[ -f /root/ddns.sh ]]; then
   chmod +x /root/ddns.sh
