@@ -31,7 +31,7 @@ tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
 tc -s qdisc show dev ens5
 
-S=zumo OPTIMIZE=1 bash <(curl -fLSs https://dispatch.nyafw.com/download/nyanpass-install.sh) rel_nodeclient "-t f96ba212-3920-4160-a5bc-f5b2f218c50e -u https://zumo.moe"
+S=zumo OPTIMIZE=1 bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient "-t f96ba212-3920-4160-a5bc-f5b2f218c50e -u https://zumo.moe"
 
 
 
