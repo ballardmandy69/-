@@ -9,27 +9,8 @@ cat > $SCRIPT_NAME << 'EOF'
 
 # 一键执行脚本
 
-# 定义每个命令和对应的输入
-commands=(
-  "bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient \"-o -t 9ea7c5c8-8942-4a18-b10e-8df69f999e25 -u https://zumo.moe\""
-  "bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient \"-o -t 7962b5dd-f3d6-40bc-999b-39b90598b7b0 -u https://zumo.moe\""
-  "bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient \"-o -t 0fcbf7ec-a000-45f7-88c8-d3e1a299248f -u https://ny.hiccupc.xyz\""
-)
-
-# 定义每个命令的输入
-inputs=(
-  "zumo\ny\n\n"
-  "a\n\n\n"
-  "z\n\n\n"
-)
-
-# 遍历执行命令
-for i in "${!commands[@]}"; do
-  echo "正在执行: ${commands[$i]}"
-  # 用 echo 模拟输入，通过管道传递到命令
-  echo -e "${inputs[$i]}" | eval "${commands[$i]}"
-done
-EOF
+S=ee OPTIMIZE=1 bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient "-t 5b026a25-e256-4047-9e92-be8a1e6c45b1 -u https://ny.hiccupc.xyz"
+S=zumo bash <(curl -fLSs https://dispatch.nyafw.com/download/nyanpass-install.sh) rel_nodeclient "-t f96ba212-3920-4160-a5bc-f5b2f218c50e -u https://zumo.moe"
 
 # 赋予脚本可执行权限
 chmod +x $SCRIPT_NAME
@@ -37,7 +18,6 @@ chmod +x $SCRIPT_NAME
 # 执行生成的脚本
 ./$SCRIPT_NAME
 sysctl -w net.core.default_qdisc=fq
-sysctl -w net.ipv4.tcp_congestion_control=bbr
 sysctl -w net.ipv4.tcp_mem="31457280 39321600 47185920"
 sysctl -w net.ipv4.tcp_slow_start_after_idle=0
 sysctl -w net.ipv4.tcp_notsent_lowat=98304
@@ -64,13 +44,22 @@ tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
 tc -s qdisc show dev ens5
 
+wget -qO- https://raw.githubusercontent.com/uk0/lotspeed/main/install.sh | sudo bash
+lotspeed preset aggressive
+lotspeed set lotserver_adaptive 0
+lotspeed set lotserver_rate 125000000
+lotspeed set lotserver_gain 40
+lotspeed set lotserver_beta 896
+lotspeed set lotserver_max_cwnd 8000
+lotspeed set lotserver_min_cwnd 64
+sysctl -w net.ipv4.tcp_no_metrics_save=1
 
-bash <(curl -fLSs https://file.hiccupc.xyz/hy2/sb-auto.sh) "json" "hkv1"  
+
 
 # 下载并执行 ddns.sh 到 /root 目录，并写入日志
 echo "开始下载 ddns.sh 到 /root 目录..." | tee -a /root/ddns.log
 
-curl -fLSs https://file.hiccupc.xyz/hy2/ddns.sh -o /root/ddns.sh 2>> /root/ddns.log
+curl -fLSs https://file.hiccupc.xyz/hy2/ddns1.sh -o /root/ddns.sh 2>> /root/ddns.log
 
 if [[ -f /root/ddns.sh ]]; then
   chmod +x /root/ddns.sh
