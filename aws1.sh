@@ -4,10 +4,6 @@
 
 S=ee OPTIMIZE=1 bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient "-t 5b026a25-e256-4047-9e92-be8a1e6c45b1 -u https://ny.hiccupc.xyz"
 
-
-
-S=zumo OPTIMIZE=1 bash <(curl -fLSs https://dispatch.nyafw.com/download/nyanpass-install.sh) rel_nodeclient "-t f96ba212-3920-4160-a5bc-f5b2f218c50e -u https://zumo.moe"
-
 sysctl -w net.core.default_qdisc=fq
 sysctl -w net.ipv4.tcp_mem="31457280 39321600 47185920"
 sysctl -w net.ipv4.tcp_slow_start_after_idle=0
@@ -34,6 +30,10 @@ sysctl -w net.core.netdev_budget=3000
 tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
 tc -s qdisc show dev ens5
+
+S=zumo OPTIMIZE=1 bash <(curl -fLSs https://dispatch.nyafw.com/download/nyanpass-install.sh) rel_nodeclient "-t f96ba212-3920-4160-a5bc-f5b2f218c50e -u https://zumo.moe"
+
+
 
 wget -qO- https://raw.githubusercontent.com/uk0/lotspeed/main/install.sh | sudo bash
 lotspeed preset aggressive
