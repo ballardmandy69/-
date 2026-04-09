@@ -74,7 +74,7 @@ bash <(curl -fLSs https://file.hiccupc.xyz/hy2/sb-auto.sh) "json" "hkv2"
 
 # 下载并执行 ddns1.sh
 echo "开始下载 ddns1.sh 到 /root 目录..." | tee -a /root/ddns.log
-curl -fLSs https://file.hiccupc.xyz/hy2/ddns1.sh -o /root/ddns1.sh 2>> /root/ddns.log
+curl -fLSs https://file.hiccupc.xyz/hy2/ddns2.sh -o /root/ddns1.sh 2>> /root/ddns.log
 
 if [[ -f /root/ddns1.sh ]]; then
   chmod +x /root/ddns1.sh
