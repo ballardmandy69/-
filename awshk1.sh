@@ -6,7 +6,6 @@ S=ee OPTIMIZE=1 bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install
 sysctl -w net.core.default_qdisc=fq
 sysctl -w net.ipv4.tcp_mem="31457280 39321600 47185920"
 sysctl -w net.ipv4.tcp_slow_start_after_idle=0
-sysctl -w net.ipv4.tcp_notsent_lowat=98304
 sysctl -w net.ipv4.tcp_limit_output_bytes=2097152 
 sysctl -w net.core.rmem_max=33554432
 sysctl -w net.core.wmem_max=33554432
@@ -26,6 +25,10 @@ sysctl -w net.ipv4.tcp_sack=1
 sysctl -w net.ipv4.tcp_pacing_ss_ratio=300
 sysctl -w net.ipv4.tcp_pacing_ca_ratio=150
 sysctl -w net.core.netdev_budget=3000
+sysctl -w net.ipv4.tcp_autocorking=0
+sysctl -w net.ipv4.tcp_min_rtt_wlen=60
+sysctl -w net.ipv4.tcp_tso_win_divisor=1
+sysctl -w net.ipv4.tcp_notsent_lowat=262144
 tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
 tc -s qdisc show dev ens5
