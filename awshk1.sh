@@ -36,7 +36,7 @@ tc -s qdisc show dev ens5
 wget -qO- https://raw.githubusercontent.com/uk0/lotspeed/main/install.sh | sudo bash
 lotspeed preset aggressive
 lotspeed set lotserver_adaptive 0
-lotspeed set lotserver_rate 125000000
+lotspeed set lotserver_rate 50000000
 lotspeed set lotserver_gain 40
 lotspeed set lotserver_beta 896
 lotspeed set lotserver_max_cwnd 8000
@@ -44,18 +44,79 @@ lotspeed set lotserver_min_cwnd 64
 sysctl -w net.ipv4.tcp_no_metrics_save=1
 
 
+cat > /usr/local/bin/push_node_a.sh << 'EOF'
+#!/bin/bash
+API_URL="https://nodecenter.hiccupc.xyz/push"
+TOKEN="hiccupcc"
+NODE_NAME="node_a"
+CHECK_IP="47.116.126.134"
 
-# 下载并执行 ddns.sh 到 /root 目录，并写入日志
-echo "开始下载 ddns.sh 到 /root 目录..." | tee -a /root/ddns.log
+get_instance_id() {
+  TOKEN_AWS=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" || true)
+  if [ -n "$TOKEN_AWS" ]; then
+    curl -s -H "X-aws-ec2-metadata-token: $TOKEN_AWS" http://169.254.169.254/latest/meta-data/instance-id
+  else
+    hostname
+  fi
+}
 
-curl -fLSs https://file.hiccupc.xyz/hy2/ddns1.sh -o /root/ddns.sh 2>> /root/ddns.log
+get_public_ip() {
+  curl -4 -s --max-time 10 https://api.ipify.org
+}
 
-if [[ -f /root/ddns.sh ]]; then
-  chmod +x /root/ddns.sh
-  echo "执行 /root/ddns.sh ..." | tee -a /root/ddns.log
-  bash /root/ddns.sh >> /root/ddns.log 2>&1
-  echo "✅ ddns.sh 执行完毕，日志位于 /root/ddns.log" | tee -a /root/ddns.log
-else
-  echo "❌ 下载 ddns.sh 失败，未找到 /root/ddns.sh" | tee -a /root/ddns.log
-  exit 1
-fi
+check_ping() {
+  ping -c 1 -W 2 "$CHECK_IP" >/dev/null 2>&1
+}
+
+NODE_ID=$(get_instance_id)
+
+push_ip() {
+  PUBLIC_IP=$(get_public_ip)
+  [ -z "$PUBLIC_IP" ] && return 1
+
+  if check_ping; then
+    PING_OK=true
+  else
+    PING_OK=false
+  fi
+
+  curl -s -X POST "$API_URL" \
+    -H "Content-Type: application/json" \
+    -d "{
+      \"token\":\"$TOKEN\",
+      \"name\":\"$NODE_NAME\",
+      \"node_id\":\"$NODE_ID\",
+      \"ip\":\"$PUBLIC_IP\",
+      \"ping_ok\":$PING_OK
+    }"
+}
+
+while true; do
+  push_ip >/dev/null 2>&1 || true
+  sleep 10
+done
+EOF
+
+chmod +x /usr/local/bin/push_node_a.sh
+
+cat > /etc/systemd/system/nodecenter-node_a.service << 'EOF'
+[Unit]
+Description=NodeCenter Push Service for node_a
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/push_node_a.sh
+Restart=always
+RestartSec=3
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable nodecenter-node_a.service
+systemctl restart nodecenter-node_a.service
+systemctl status nodecenter-node_a.service --no-pager
