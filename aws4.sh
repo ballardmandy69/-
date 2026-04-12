@@ -1,7 +1,6 @@
 #!/bin/bash
 
 
-S=ee OPTIMIZE=1 bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient "-t 5b026a25-e256-4047-9e92-be8a1e6c45b1 -u https://ny.hiccupc.xyz"
 S=zumo OPTIMIZE=1 bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient "-t f96ba212-3920-4160-a5bc-f5b2f218c50e -u https://zumo.moe"
 
 sysctl -w net.core.default_qdisc=fq
@@ -31,29 +30,7 @@ tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
 tc -s qdisc show dev ens5
 
-wget -qO- https://raw.githubusercontent.com/uk0/lotspeed/main/install.sh | sudo bash
-lotspeed preset aggressive
-lotspeed set lotserver_adaptive 0
-lotspeed set lotserver_rate 125000000
-lotspeed set lotserver_gain 40
-lotspeed set lotserver_beta 896
-lotspeed set lotserver_max_cwnd 8000
-lotspeed set lotserver_min_cwnd 64
-sysctl -w net.ipv4.tcp_no_metrics_save=1
 
 
 
-# 下载并执行 ddns.sh 到 /root 目录，并写入日志
-echo "开始下载 ddns.sh 到 /root 目录..." | tee -a /root/ddns.log
-
-curl -fLSs https://file.hiccupc.xyz/hy2/ddns4.sh -o /root/ddns.sh 2>> /root/ddns.log
-
-if [[ -f /root/ddns.sh ]]; then
-  chmod +x /root/ddns.sh
-  echo "执行 /root/ddns.sh ..." | tee -a /root/ddns.log
-  bash /root/ddns.sh >> /root/ddns.log 2>&1
-  echo "✅ ddns.sh 执行完毕，日志位于 /root/ddns.log" | tee -a /root/ddns.log
-else
-  echo "❌ 下载 ddns.sh 失败，未找到 /root/ddns.sh" | tee -a /root/ddns.log
-  exit 1
-fi
+apt update && apt install -y jq cron netcat-openbsd iputils-ping util-linux && curl -kfsSL https://tools.airport-v2.com/node-ddns/abc.sh | bash
