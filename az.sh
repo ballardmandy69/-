@@ -29,9 +29,9 @@ sysctl -w net.ipv4.tcp_autocorking=0
 sysctl -w net.ipv4.tcp_min_rtt_wlen=60
 sysctl -w net.ipv4.tcp_tso_win_divisor=1
 sysctl -w net.ipv4.tcp_notsent_lowat=262144
-tc qdisc replace dev ens5 root fq
-tc qdisc del dev ens5 root
-tc -s qdisc show dev ens5
+tc qdisc replace dev eth root fq
+tc qdisc del dev eth root
+tc -s qdisc show dev eth
 
 
 
@@ -52,18 +52,23 @@ API_URL="https://nodecenter.hiccupc.xyz/push"
 TOKEN="hiccupcc"
 NODE_NAME="node_az"
 CHECK_IP="47.116.126.134"
+LOG_FILE="/var/log/push_node_az.log"
+
+log() {
+  echo "[$(date '+%F %T')] $*" >> "$LOG_FILE"
+}
 
 get_instance_id() {
-  TOKEN_AWS=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" || true)
-  if [ -n "$TOKEN_AWS" ]; then
-    curl -s -H "X-aws-ec2-metadata-token: $TOKEN_AWS" http://169.254.169.254/latest/meta-data/instance-id
-  else
-    hostname
-  fi
+  # Azure IMDS
+  curl -s -H "Metadata:true" \
+    "http://169.254.169.254/metadata/instance/compute/vmId?api-version=2021-02-01&format=text" \
+    || hostname
 }
 
 get_public_ip() {
-  curl -4 -s --max-time 10 https://api.ipify.org
+  curl -4 -s --max-time 5 https://api.ipify.org || \
+  curl -4 -s --max-time 5 https://ifconfig.me || \
+  curl -4 -s --max-time 5 https://ipv4.icanhazip.com
 }
 
 check_ping() {
@@ -71,10 +76,15 @@ check_ping() {
 }
 
 NODE_ID=$(get_instance_id)
+log "service started, NODE_ID=$NODE_ID"
 
 push_ip() {
-  PUBLIC_IP=$(get_public_ip)
-  [ -z "$PUBLIC_IP" ] && return 1
+  PUBLIC_IP=$(get_public_ip | tr -d ' \n\r')
+
+  if [ -z "$PUBLIC_IP" ]; then
+    log "PUBLIC_IP empty"
+    return 1
+  fi
 
   if check_ping; then
     PING_OK=true
@@ -82,7 +92,7 @@ push_ip() {
     PING_OK=false
   fi
 
-  curl -s -X POST "$API_URL" \
+  RESP=$(curl -s -X POST "$API_URL" \
     -H "Content-Type: application/json" \
     -d "{
       \"token\":\"$TOKEN\",
@@ -90,35 +100,17 @@ push_ip() {
       \"node_id\":\"$NODE_ID\",
       \"ip\":\"$PUBLIC_IP\",
       \"ping_ok\":$PING_OK
-    }"
+    }")
+
+  log "push ip=$PUBLIC_IP ping_ok=$PING_OK resp=$RESP"
 }
 
 while true; do
-  push_ip >/dev/null 2>&1 || true
+  push_ip || true
   sleep 10
 done
 EOF
 
 chmod +x /usr/local/bin/push_node_az.sh
-
-cat > /etc/systemd/system/nodecenter-node_az.service << 'EOF'
-[Unit]
-Description=NodeCenter Push Service for node_az
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/push_node_az.sh
-Restart=always
-RestartSec=3
-User=root
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-systemctl daemon-reload
-systemctl enable nodecenter-node_az.service
 systemctl restart nodecenter-node_az.service
 systemctl status nodecenter-node_az.service --no-pager
