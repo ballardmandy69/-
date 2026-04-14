@@ -46,13 +46,13 @@ lotspeed set lotserver_max_cwnd 8000
 lotspeed set lotserver_min_cwnd 64
 sysctl -w net.ipv4.tcp_no_metrics_save=1
 
-cat > /usr/local/bin/push_node_az.sh << 'EOF'
+cat > /usr/local/bin/push_node_az1.sh << 'EOF'
 #!/bin/bash
 API_URL="https://nodecenter.hiccupc.xyz/push"
 TOKEN="hiccupcc"
-NODE_NAME="node_az"
+NODE_NAME="node_az1"
 CHECK_IP="47.116.126.134"
-LOG_FILE="/var/log/push_node_az.log"
+LOG_FILE="/var/log/push_node_az1.log"
 
 log() {
   echo "[$(date '+%F %T')] $*" >> "$LOG_FILE"
@@ -111,6 +111,26 @@ while true; do
 done
 EOF
 
-chmod +x /usr/local/bin/push_node_az.sh
-systemctl restart nodecenter-node_az.service
-systemctl status nodecenter-node_az.service --no-pager
+chmod +x /usr/local/bin/push_node_az1.sh
+
+cat > /etc/systemd/system/nodecenter-node_az1.service << 'EOF'
+[Unit]
+Description=NodeCenter Push Service for node_az1
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/push_node_az1.sh
+Restart=always
+RestartSec=3
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable nodecenter-node_az1.service
+systemctl restart nodecenter-node_az1.service
+systemctl status nodecenter-node_az1.service --no-pager
