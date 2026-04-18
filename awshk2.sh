@@ -3,6 +3,7 @@
 
 
 S=ee OPTIMIZE=1 bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient "-t bd8ab679-2475-4ef2-bcb1-8cdcee750838 -u https://ny.hiccupc.xyz"
+S=nyp OPTIMIZE=1 bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_nodeclient "-o -t 143d235b-313b-457e-9278-858294082457 -u https://ny.hiccupc.xyz"
 sysctl -w net.core.default_qdisc=fq
 sysctl -w net.ipv4.tcp_mem="31457280 39321600 47185920"
 sysctl -w net.ipv4.tcp_slow_start_after_idle=0
