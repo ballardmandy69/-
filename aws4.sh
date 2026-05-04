@@ -31,31 +31,27 @@ tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
 tc -s qdisc show dev ens5
 
-curl -fsSL https://raw.githubusercontent.com/uk0/lotspeed/ml-tcp/install.sh | sudo bash
-lotspeed preset aggressive 
+wget -qO- https://raw.githubusercontent.com/uk0/lotspeed/main/install.sh | sudo bash
+lotspeed preset aggressive
+
+
 lotspeed set lotserver_rate 50000000
-lotspeed set lotserver_hist_enable 0
+lotspeed set lotserver_gain 40
 lotspeed set lotserver_beta 896
-
-# 起步比 32 更像 main，但不要直接 64
+lotspeed set lotserver_max_cwnd 8000
 lotspeed set lotserver_min_cwnd 48
-lotspeed set lotserver_max_cwnd 10000
-
-# 低延迟环境不需要 HD，关掉
-lotspeed set lotserver_hd_enable 0
-
-# FAST 负责主强度
-lotspeed set lotserver_fast_alpha 52
-lotspeed set lotserver_fast_gamma 70
-lotspeed set lotserver_fast_ss_exit 32
-
-# Brave 负责丢包/抖动时继续顶，但不要过度 push
-lotspeed set lotserver_brave_enable 1
-lotspeed set lotserver_brave_rtt_pct 28
-lotspeed set lotserver_brave_hold_ms 320
-lotspeed set lotserver_brave_floor_pct 90
-lotspeed set lotserver_brave_push_pct 14
 sysctl -w net.ipv4.tcp_no_metrics_save=1
+sysctl -w net.ipv4.tcp_autocorking=1
+sysctl -w net.ipv4.tcp_min_rtt_wlen=20
+sysctl -w net.ipv4.tcp_tso_win_divisor=1
+sysctl -w net.ipv4.tcp_pacing_ss_ratio=260
+sysctl -w net.ipv4.tcp_pacing_ca_ratio=120
+sysctl -w net.ipv4.tcp_notsent_lowat=131072   
+sysctl -w net.ipv4.tcp_mtu_probing=1
+sysctl -w net.ipv4.tcp_probe_interval=45
+sysctl -w net.ipv4.tcp_probe_threshold=6
+
+
 
 cat > /usr/local/bin/push_node_y2.sh << 'EOF'
 #!/bin/bash
