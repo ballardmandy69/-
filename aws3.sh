@@ -33,8 +33,9 @@ tc -s qdisc show dev ens5
 
 wget -qO- https://raw.githubusercontent.com/uk0/lotspeed/main/install.sh | sudo bash
 lotspeed preset aggressive
+
 lotspeed set lotserver_rate 50000000
-lotspeed set lotserver_gain 40
+lotspeed set lotserver_gain 32
 lotspeed set lotserver_beta 896
 lotspeed set lotserver_max_cwnd 8000
 lotspeed set lotserver_min_cwnd 48
@@ -48,6 +49,7 @@ sysctl -w net.ipv4.tcp_notsent_lowat=131072
 sysctl -w net.ipv4.tcp_mtu_probing=1
 sysctl -w net.ipv4.tcp_probe_interval=45
 sysctl -w net.ipv4.tcp_probe_threshold=6
+
 
 
 cat > /usr/local/bin/push_node_y1.sh << 'EOF'
