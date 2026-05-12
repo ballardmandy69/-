@@ -55,8 +55,8 @@ sysctl -w net.ipv4.tcp_pacing_ss_ratio=260
 sysctl -w net.ipv4.tcp_pacing_ca_ratio=120
 sysctl -w net.ipv4.tcp_notsent_lowat=131072   
 sysctl -w net.ipv4.tcp_mtu_probing=1
-sysctl -w net.ipv4.tcp_probe_interval=45
-sysctl -w net.ipv4.tcp_probe_threshold=6
+sysctl -w net.ipv4.tcp_probe_interval=60
+sysctl -w net.ipv4.tcp_probe_threshold=8
 
 
 cat > /usr/local/bin/push_node_b.sh << 'EOF'
