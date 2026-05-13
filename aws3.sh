@@ -35,7 +35,7 @@ wget -qO- https://raw.githubusercontent.com/uk0/lotspeed/main/install.sh | sudo 
 lotspeed preset aggressive
 
 lotspeed set lotserver_rate 45000000
-lotspeed set lotserver_gain 32
+lotspeed set lotserver_gain 28
 lotspeed set lotserver_beta 820
 lotspeed set lotserver_max_cwnd 6000
 lotspeed set lotserver_min_cwnd 32
