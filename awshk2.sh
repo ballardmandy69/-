@@ -42,11 +42,11 @@ wget -qO- https://raw.githubusercontent.com/uk0/lotspeed/main/install.sh | sudo 
 lotspeed preset aggressive
 lotspeed set lotserver_adaptive 0
 
-lotspeed set lotserver_rate 50000000
+lotspeed set lotserver_rate 45000000
 lotspeed set lotserver_gain 32
-lotspeed set lotserver_beta 896
-lotspeed set lotserver_max_cwnd 8000
-lotspeed set lotserver_min_cwnd 48
+lotspeed set lotserver_beta 820
+lotspeed set lotserver_max_cwnd 6000
+lotspeed set lotserver_min_cwnd 32
 sysctl -w net.ipv4.tcp_no_metrics_save=1
 sysctl -w net.ipv4.tcp_autocorking=1
 sysctl -w net.ipv4.tcp_min_rtt_wlen=20
