@@ -8,7 +8,6 @@ S=dg bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_no
 sysctl -w net.core.default_qdisc=fq
 sysctl -w net.ipv4.tcp_mem="31457280 39321600 47185920"
 sysctl -w net.ipv4.tcp_slow_start_after_idle=0
-sysctl -w net.ipv4.tcp_limit_output_bytes=2097152 
 sysctl -w net.core.rmem_max=33554432
 sysctl -w net.core.wmem_max=33554432
 sysctl -w net.ipv4.tcp_rmem="8192 262144 33554432"
@@ -24,13 +23,18 @@ sysctl -w net.ipv4.tcp_dsack=1
 sysctl -w net.ipv4.tcp_timestamps=1
 sysctl -w net.ipv4.tcp_rfc1337=1
 sysctl -w net.ipv4.tcp_sack=1  
-sysctl -w net.ipv4.tcp_pacing_ss_ratio=300
-sysctl -w net.ipv4.tcp_pacing_ca_ratio=150
-sysctl -w net.core.netdev_budget=3000
 sysctl -w net.ipv4.tcp_autocorking=0
 sysctl -w net.ipv4.tcp_min_rtt_wlen=60
-sysctl -w net.ipv4.tcp_tso_win_divisor=1
-sysctl -w net.ipv4.tcp_notsent_lowat=262144
+sysctl -w net.ipv4.tcp_tso_win_divisor=2
+sysctl -w net.ipv4.tcp_pacing_ss_ratio=220
+sysctl -w net.ipv4.tcp_pacing_ca_ratio=150
+sysctl -w net.ipv4.tcp_notsent_lowat=131072
+sysctl -w net.ipv4.tcp_limit_output_bytes=8388608
+sysctl -w net.ipv4.tcp_mtu_probing=2
+sysctl -w net.ipv4.tcp_base_mss=1360
+sysctl -w net.ipv4.tcp_probe_interval=60
+sysctl -w net.ipv4.tcp_probe_threshold=8
+sysctl -w net.ipv4.tcp_no_metrics_save=1
 tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
 tc -s qdisc show dev ens5
@@ -48,15 +52,7 @@ lotspeed set lotserver_beta 820
 lotspeed set lotserver_max_cwnd 6000
 lotspeed set lotserver_min_cwnd 32
 sysctl -w net.ipv4.tcp_no_metrics_save=1
-sysctl -w net.ipv4.tcp_autocorking=1
-sysctl -w net.ipv4.tcp_min_rtt_wlen=20
-sysctl -w net.ipv4.tcp_tso_win_divisor=1
-sysctl -w net.ipv4.tcp_pacing_ss_ratio=260
-sysctl -w net.ipv4.tcp_pacing_ca_ratio=120
-sysctl -w net.ipv4.tcp_notsent_lowat=131072   
-sysctl -w net.ipv4.tcp_mtu_probing=0
-sysctl -w net.ipv4.tcp_probe_interval=60
-sysctl -w net.ipv4.tcp_probe_threshold=8
+
 
 
 cat > /usr/local/bin/push_node_b.sh << 'EOF'
