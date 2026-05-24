@@ -32,8 +32,7 @@ tc -s qdisc show dev ens5
 
 wget -qO- https://raw.githubusercontent.com/uk0/lotspeed/main/install.sh | sudo bash
 lotspeed preset aggressive
-
-
+lotspeed set lotserver_adaptive 0
 lotspeed set lotserver_rate 45000000
 lotspeed set lotserver_gain 32
 lotspeed set lotserver_beta 820
