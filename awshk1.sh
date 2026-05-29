@@ -63,6 +63,7 @@ CHECK_IP="47.116.126.134"
 CHANGE_IP_URL="https://api.aws.sb/ec2-instances/i-0df663a9a54dea6f0/ip-address"
 CHANGE_COOLDOWN=90
 LAST_CHANGE_FILE="/tmp/node_a_last_change_ip"
+LOG_FILE="/var/log/nodecenter_node_a.log"
 
 get_instance_id() {
   TOKEN_AWS=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" \
@@ -81,7 +82,7 @@ get_public_ip() {
 }
 
 check_ping() {
-  timeout 3 bash -c "</dev/tcp/${CHECK_IP}/443" >/dev/null 2>&1
+  ping -c 1 -W 2 "$CHECK_IP" >/dev/null 2>&1
 }
 
 random_r() {
@@ -100,7 +101,7 @@ change_ip() {
 
   R=$(random_r)
 
-  echo "$(date) change ip..." >> /var/log/nodecenter.log
+  echo "$(date) node_a change ip..." >> "$LOG_FILE"
 
   curl -s -X PATCH "${CHANGE_IP_URL}?r=${R}" \
     -H "Content-Type: application/json" \
@@ -110,9 +111,9 @@ change_ip() {
     -H "X-Region-Name: ap-southeast-1" \
     -H "X-Share-Group-Token: 80f5d1a89773428f9dc51d7d1946fcf2" \
     -d '{"ipAddress":""}' \
-    --max-time 30 >> /var/log/nodecenter.log 2>&1
+    --max-time 30 >> "$LOG_FILE" 2>&1
 
-  echo "" >> /var/log/nodecenter.log
+  echo "" >> "$LOG_FILE"
   echo "$NOW" > "$LAST_CHANGE_FILE"
 
   sleep 30
@@ -128,9 +129,7 @@ push_ip() {
     PING_OK=true
   else
     PING_OK=false
-
     change_ip
-
     PUBLIC_IP=$(get_public_ip)
     [ -z "$PUBLIC_IP" ] && return 1
   fi
