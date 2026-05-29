@@ -60,7 +60,7 @@ TOKEN="hiccupcc"
 NODE_NAME="node_a"
 CHECK_IP="47.116.126.134"
 
-CHANGE_IP_URL="https://api.aws.sb/ec2-instances/i-0df663a9a54dea6f0/ip-address"
+CHANGE_IP_URL="https://api.aws.sb/ec2-instances/i-01fad3d6ea0913015/ip-address"
 CHANGE_COOLDOWN=90
 LAST_CHANGE_FILE="/tmp/node_a_last_change_ip"
 LOG_FILE="/var/log/nodecenter_node_a.log"
@@ -109,7 +109,7 @@ change_ip() {
     -H "Origin: https://aws.sb" \
     -H "X-Auth-Token: e85a4ba72df64a2c90f97ef45b2dc211" \
     -H "X-Region-Name: ap-southeast-1" \
-    -H "X-Share-Group-Token: 80f5d1a89773428f9dc51d7d1946fcf2" \
+    -H "X-Share-Group-Token: 711485a7d8634926b47ca0d994e08c5a" \
     -d '{"ipAddress":""}' \
     --max-time 30 >> "$LOG_FILE" 2>&1
 
@@ -129,7 +129,9 @@ push_ip() {
     PING_OK=true
   else
     PING_OK=false
+
     change_ip
+
     PUBLIC_IP=$(get_public_ip)
     [ -z "$PUBLIC_IP" ] && return 1
   fi
