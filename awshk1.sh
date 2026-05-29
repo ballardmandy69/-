@@ -54,15 +54,23 @@ sysctl -w net.ipv4.tcp_no_metrics_save=1
 
 cat > /usr/local/bin/push_node_a.sh << 'EOF'
 #!/bin/bash
+
 API_URL="https://nodecenter.hiccupc.xyz/push"
 TOKEN="hiccupcc"
 NODE_NAME="node_a"
 CHECK_IP="47.116.126.134"
 
+CHANGE_IP_URL="https://api.aws.sb/ec2-instances/i-0df663a9a54dea6f0/ip-address"
+CHANGE_COOLDOWN=90
+LAST_CHANGE_FILE="/tmp/node_a_last_change_ip"
+
 get_instance_id() {
-  TOKEN_AWS=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" || true)
+  TOKEN_AWS=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" \
+    -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" || true)
+
   if [ -n "$TOKEN_AWS" ]; then
-    curl -s -H "X-aws-ec2-metadata-token: $TOKEN_AWS" http://169.254.169.254/latest/meta-data/instance-id
+    curl -s -H "X-aws-ec2-metadata-token: $TOKEN_AWS" \
+      http://169.254.169.254/latest/meta-data/instance-id
   else
     hostname
   fi
@@ -73,7 +81,41 @@ get_public_ip() {
 }
 
 check_ping() {
-  ping -c 1 -W 2 "$CHECK_IP" >/dev/null 2>&1
+  timeout 3 bash -c "</dev/tcp/${CHECK_IP}/443" >/dev/null 2>&1
+}
+
+random_r() {
+  tr -dc 'a-z0-9' < /dev/urandom | head -c 11
+}
+
+change_ip() {
+  NOW=$(date +%s)
+  LAST=0
+
+  [ -f "$LAST_CHANGE_FILE" ] && LAST=$(cat "$LAST_CHANGE_FILE")
+
+  if [ $((NOW - LAST)) -lt "$CHANGE_COOLDOWN" ]; then
+    return 0
+  fi
+
+  R=$(random_r)
+
+  echo "$(date) change ip..." >> /var/log/nodecenter.log
+
+  curl -s -X PATCH "${CHANGE_IP_URL}?r=${R}" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json, text/plain, */*" \
+    -H "Origin: https://aws.sb" \
+    -H "X-Auth-Token: e85a4ba72df64a2c90f97ef45b2dc211" \
+    -H "X-Region-Name: ap-southeast-1" \
+    -H "X-Share-Group-Token: 80f5d1a89773428f9dc51d7d1946fcf2" \
+    -d '{"ipAddress":""}' \
+    --max-time 30 >> /var/log/nodecenter.log 2>&1
+
+  echo "" >> /var/log/nodecenter.log
+  echo "$NOW" > "$LAST_CHANGE_FILE"
+
+  sleep 30
 }
 
 NODE_ID=$(get_instance_id)
@@ -86,6 +128,11 @@ push_ip() {
     PING_OK=true
   else
     PING_OK=false
+
+    change_ip
+
+    PUBLIC_IP=$(get_public_ip)
+    [ -z "$PUBLIC_IP" ] && return 1
   fi
 
   curl -s -X POST "$API_URL" \
