@@ -57,77 +57,109 @@ sysctl -w net.ipv4.tcp_no_metrics_save=1
 
 cat > /usr/local/bin/push_node_b.sh << 'EOF'
 #!/bin/bash
+
 API_URL="https://nodecenter.hiccupc.xyz/push"
 TOKEN="hiccupcc"
 NODE_NAME="node_b"
 CHECK_IP="47.116.126.134"
 
+CHANGE_IP_URL="https://api.aws.sb/ec2-instances/i-0b6613850178b0102/ip-address"
+CHANGE_COOLDOWN=90
+LAST_CHANGE_FILE="/tmp/node_b_last_change_ip"
+LOG_FILE="/var/log/nodecenter_node_b.log"
+
 get_instance_id() {
-  TOKEN_AWS=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" || true)
-  if [ -n "$TOKEN_AWS" ]; then
-    curl -s -H "X-aws-ec2-metadata-token: $TOKEN_AWS" http://169.254.169.254/latest/meta-data/instance-id
-  else
-    hostname
-  fi
+TOKEN_AWS=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" 
+-H "X-aws-ec2-metadata-token-ttl-seconds: 21600" || true)
+
+if [ -n "$TOKEN_AWS" ]; then
+curl -s -H "X-aws-ec2-metadata-token: $TOKEN_AWS" 
+http://169.254.169.254/latest/meta-data/instance-id
+else
+hostname
+fi
 }
 
 get_public_ip() {
-  curl -4 -s --max-time 10 https://api.ipify.org
+curl -4 -s --max-time 10 https://api.ipify.org
 }
 
 check_ping() {
-  ping -c 1 -W 2 "$CHECK_IP" >/dev/null 2>&1
+ping -c 1 -W 2 "$CHECK_IP" >/dev/null 2>&1
+}
+
+random_r() {
+tr -dc 'a-z0-9' < /dev/urandom | head -c 11
+}
+
+change_ip() {
+NOW=$(date +%s)
+LAST=0
+
+[ -f "$LAST_CHANGE_FILE" ] && LAST=$(cat "$LAST_CHANGE_FILE")
+
+if [ $((NOW - LAST)) -lt "$CHANGE_COOLDOWN" ]; then
+return 0
+fi
+
+R=$(random_r)
+
+echo "$(date) node_b change ip..." >> "$LOG_FILE"
+
+curl -s -X PATCH "${CHANGE_IP_URL}?r=${R}" 
+-H "Content-Type: application/json" 
+-H "Accept: application/json, text/plain, */*" 
+-H "Origin: https://aws.sb" 
+-H "X-Auth-Token: e85a4ba72df64a2c90f97ef45b2dc211" 
+-H "X-Region-Name: ap-southeast-1" 
+-H "X-Share-Group-Token: 711485a7d8634926b47ca0d994e08c5a" 
+-d '{"ipAddress":""}' 
+--max-time 30 >> "$LOG_FILE" 2>&1
+
+echo "$NOW" > "$LAST_CHANGE_FILE"
+
+sleep 30
 }
 
 NODE_ID=$(get_instance_id)
 
 push_ip() {
-  PUBLIC_IP=$(get_public_ip)
-  [ -z "$PUBLIC_IP" ] && return 1
+PUBLIC_IP=$(get_public_ip)
+[ -z "$PUBLIC_IP" ] && return 1
 
-  if check_ping; then
-    PING_OK=true
-  else
-    PING_OK=false
-  fi
+if check_ping; then
+PING_OK=true
+else
+PING_OK=false
 
-  curl -s -X POST "$API_URL" \
-    -H "Content-Type: application/json" \
-    -d "{
-      \"token\":\"$TOKEN\",
-      \"name\":\"$NODE_NAME\",
-      \"node_id\":\"$NODE_ID\",
-      \"ip\":\"$PUBLIC_IP\",
-      \"ping_ok\":$PING_OK
-    }"
+```
+change_ip
+
+PUBLIC_IP=$(get_public_ip)
+[ -z "$PUBLIC_IP" ] && return 1
+```
+
+fi
+
+curl -s -X POST "$API_URL" 
+-H "Content-Type: application/json" 
+-d "{
+"token":"$TOKEN",
+"name":"$NODE_NAME",
+"node_id":"$NODE_ID",
+"ip":"$PUBLIC_IP",
+"ping_ok":$PING_OK
+}"
 }
 
 while true; do
-  push_ip >/dev/null 2>&1 || true
-  sleep 10
+push_ip >/dev/null 2>&1 || true
+sleep 10
 done
 EOF
 
 chmod +x /usr/local/bin/push_node_b.sh
 
-cat > /etc/systemd/system/nodecenter-node_b.service << 'EOF'
-[Unit]
-Description=NodeCenter Push Service for node_b
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/push_node_b.sh
-Restart=always
-RestartSec=3
-User=root
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-systemctl daemon-reload
-systemctl enable nodecenter-node_b.service
 systemctl restart nodecenter-node_b.service
 systemctl status nodecenter-node_b.service --no-pager
+
