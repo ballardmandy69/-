@@ -111,7 +111,7 @@ change_ip() {
     -H "Accept: application/json, text/plain, */*" \
     -H "Origin: https://aws.sb" \
     -H "X-Auth-Token: e85a4ba72df64a2c90f97ef45b2dc211" \
-    -H "X-Region-Name: ap-southeast-1" \
+    -H "X-Region-Name: ap-northeast-1" \
     -H "X-Share-Group-Token: 711485a7d8634926b47ca0d994e08c5a" \
     -d '{"ipAddress":""}' \
     --max-time 30 >> "$LOG_FILE" 2>&1
