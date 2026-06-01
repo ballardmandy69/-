@@ -160,6 +160,7 @@ EOF
 
 chmod +x /usr/local/bin/push_node_b.sh
 
-systemctl restart nodecenter-node_b.service
-systemctl status nodecenter-node_b.service --no-pager
-
+systemctl daemon-reload
+systemctl enable nodecenter-node_a.service
+systemctl restart nodecenter-node_a.service
+systemctl status nodecenter-node_a.service --no-pager
