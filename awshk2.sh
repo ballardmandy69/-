@@ -60,17 +60,29 @@ cat > /usr/local/bin/push_node_b.sh << 'EOF'
 
 API_URL="https://nodecenter.hiccupc.xyz/push"
 TOKEN="hiccupcc"
-NODE_NAME="node_b"
-CHECK_IP="47.116.126.134"
+NODE_NAME_V4="node_b"
+NODE_NAME_V6="node_b6"
+CHECK_IP_V4="47.116.126.134"
 
-CHANGE_IP_URL="https://api.aws.sb/ec2-instances/i-0b6613850178b0102/ip-address"
 CHANGE_COOLDOWN=90
 LAST_CHANGE_FILE="/tmp/node_b_last_change_ip"
 LOG_FILE="/var/log/nodecenter_node_b.log"
 
+AWS_SB_AUTH_TOKEN="e85a4ba72df64a2c90f97ef45b2dc211"
+AWS_SB_SHARE_GROUP_TOKEN="711485a7d8634926b47ca0d994e08c5a"
+
+log() {
+  echo "[$(date '+%F %T')] $*" >> "$LOG_FILE"
+}
+
+get_aws_token() {
+  curl -s -X PUT "http://169.254.169.254/latest/api/token" \
+    -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"
+}
+
 get_instance_id() {
-  TOKEN_AWS=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" \
-    -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" || true)
+  local TOKEN_AWS
+  TOKEN_AWS=$(get_aws_token || true)
 
   if [ -n "$TOKEN_AWS" ]; then
     curl -s -H "X-aws-ec2-metadata-token: $TOKEN_AWS" \
@@ -80,12 +92,31 @@ get_instance_id() {
   fi
 }
 
-get_public_ip() {
-  curl -4 -s --max-time 10 https://api.ipify.org
+get_region_from_share_api() {
+  local INSTANCE_ID="$1"
+
+  curl -s "https://api.aws.sb/ec2-instance-shares?r=$(tr -dc 'a-z0-9' </dev/urandom | head -c 11)" \
+    -H "Accept: application/json, text/plain, */*" \
+    -H "Origin: https://aws.sb" \
+    -H "X-Auth-Token: ${AWS_SB_AUTH_TOKEN}" \
+    -H "X-Share-Group-Token: ${AWS_SB_SHARE_GROUP_TOKEN}" \
+    | grep -oP '{[^}]*"instanceId"\s*:\s*"'$INSTANCE_ID'"[^}]*"regionName"\s*:\s*"\K[^"]+'
 }
 
-check_ping() {
-  ping -c 1 -W 2 "$CHECK_IP" >/dev/null 2>&1
+get_public_ipv4() {
+  curl -4 -s --max-time 5 https://api.ipify.org || \
+  curl -4 -s --max-time 5 https://ifconfig.me || \
+  curl -4 -s --max-time 5 https://ipv4.icanhazip.com
+}
+
+get_public_ipv6() {
+  curl -6 -s --max-time 5 https://api64.ipify.org || \
+  curl -6 -s --max-time 5 https://ifconfig.co || \
+  curl -6 -s --max-time 5 https://ipv6.icanhazip.com
+}
+
+check_ping_v4() {
+  ping -c 1 -W 2 "$CHECK_IP_V4" >/dev/null 2>&1
 }
 
 random_r() {
@@ -93,64 +124,94 @@ random_r() {
 }
 
 change_ip() {
+  local NOW LAST R REGION_NAME CHANGE_IP_URL NODE_ID
+
   NOW=$(date +%s)
   LAST=0
-
   [ -f "$LAST_CHANGE_FILE" ] && LAST=$(cat "$LAST_CHANGE_FILE")
 
   if [ $((NOW - LAST)) -lt "$CHANGE_COOLDOWN" ]; then
     return 0
   fi
 
+  NODE_ID=$(get_instance_id)
+
+  if [ -z "$NODE_ID" ]; then
+    log "node_b change ip skipped: NODE_ID empty"
+    return 1
+  fi
+
+  REGION_NAME=$(get_region_from_share_api "$NODE_ID")
+
+  if [ -z "$REGION_NAME" ]; then
+    log "node_b change ip skipped: region not found for instance=${NODE_ID}"
+    return 1
+  fi
+
+  CHANGE_IP_URL="https://api.aws.sb/ec2-instances/${NODE_ID}/ip-address"
   R=$(random_r)
 
-  echo "$(date) node_b change ip..." >> "$LOG_FILE"
+  log "node_b change ip... instance=${NODE_ID} region=${REGION_NAME}"
 
   curl -s -X PATCH "${CHANGE_IP_URL}?r=${R}" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json, text/plain, */*" \
     -H "Origin: https://aws.sb" \
-    -H "X-Auth-Token: e85a4ba72df64a2c90f97ef45b2dc211" \
-    -H "X-Region-Name: ap-northeast-1" \
-    -H "X-Share-Group-Token: 711485a7d8634926b47ca0d994e08c5a" \
+    -H "X-Auth-Token: ${AWS_SB_AUTH_TOKEN}" \
+    -H "X-Region-Name: ${REGION_NAME}" \
+    -H "X-Share-Group-Token: ${AWS_SB_SHARE_GROUP_TOKEN}" \
     -d '{"ipAddress":""}' \
     --max-time 30 >> "$LOG_FILE" 2>&1
 
   echo "$NOW" > "$LAST_CHANGE_FILE"
-
   sleep 30
 }
 
-NODE_ID=$(get_instance_id)
+push_one() {
+  local NODE_NAME="$1"
+  local NODE_ID="$2"
+  local IP="$3"
+  local PING_OK="$4"
+  local RESP
 
-push_ip() {
-  PUBLIC_IP=$(get_public_ip)
-  [ -z "$PUBLIC_IP" ] && return 1
-
-  if check_ping; then
-    PING_OK=true
-  else
-    PING_OK=false
-
-    change_ip
-
-    PUBLIC_IP=$(get_public_ip)
-    [ -z "$PUBLIC_IP" ] && return 1
+  if [ -z "$IP" ]; then
+    log "$NODE_NAME ip empty, skip"
+    return 1
   fi
 
-  curl -s -X POST "$API_URL" \
+  RESP=$(curl -s -X POST "$API_URL" \
     -H "Content-Type: application/json" \
     -d "{
       \"token\":\"$TOKEN\",
       \"name\":\"$NODE_NAME\",
       \"node_id\":\"$NODE_ID\",
-      \"ip\":\"$PUBLIC_IP\",
+      \"ip\":\"$IP\",
       \"ping_ok\":$PING_OK
-    }"
+    }")
+
+  log "push node=$NODE_NAME ip=$IP ping_ok=$PING_OK resp=$RESP"
 }
 
 while true; do
-  push_ip >/dev/null 2>&1 || true
+  NODE_ID=$(get_instance_id | tr -d ' \n\r')
+  IPV4=$(get_public_ipv4 | tr -d ' \n\r')
+  IPV6=$(get_public_ipv6 | tr -d ' \n\r')
+
+  if check_ping_v4; then
+    PING_OK_V4=true
+  else
+    PING_OK_V4=false
+    change_ip
+    NODE_ID=$(get_instance_id | tr -d ' \n\r')
+    IPV4=$(get_public_ipv4 | tr -d ' \n\r')
+    IPV6=$(get_public_ipv6 | tr -d ' \n\r')
+  fi
+
+  PING_OK_V6=true
+
+  push_one "$NODE_NAME_V4" "$NODE_ID" "$IPV4" "$PING_OK_V4"
+  push_one "$NODE_NAME_V6" "$NODE_ID" "$IPV6" "$PING_OK_V6"
+
   sleep 10
 done
 EOF
@@ -159,7 +220,7 @@ chmod +x /usr/local/bin/push_node_b.sh
 
 cat > /etc/systemd/system/nodecenter-node_b.service << 'EOF'
 [Unit]
-Description=NodeCenter Push Service for node_b
+Description=NodeCenter Push Service for node_b and node_b6
 After=network-online.target
 Wants=network-online.target
 
@@ -176,5 +237,5 @@ EOF
 
 systemctl daemon-reload
 systemctl enable nodecenter-node_b.service
-systemctl start nodecenter-node_b.service
-systemctl status nodecenter-node_b.service --no-pager
+systemctl restart nodecenter-node_b.service
+systemctl status nodecenter-node_b.service --no-pager -l
