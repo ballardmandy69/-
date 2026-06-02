@@ -6,7 +6,6 @@ S=ee  bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_n
 sysctl -w net.core.default_qdisc=fq
 sysctl -w net.ipv4.tcp_mem="31457280 39321600 47185920"
 sysctl -w net.ipv4.tcp_slow_start_after_idle=0
-sysctl -w net.ipv4.tcp_limit_output_bytes=2097152 
 sysctl -w net.core.rmem_max=33554432
 sysctl -w net.core.wmem_max=33554432
 sysctl -w net.ipv4.tcp_rmem="8192 262144 33554432"
@@ -22,13 +21,18 @@ sysctl -w net.ipv4.tcp_dsack=1
 sysctl -w net.ipv4.tcp_timestamps=1
 sysctl -w net.ipv4.tcp_rfc1337=1
 sysctl -w net.ipv4.tcp_sack=1  
-sysctl -w net.ipv4.tcp_pacing_ss_ratio=300
-sysctl -w net.ipv4.tcp_pacing_ca_ratio=150
-sysctl -w net.core.netdev_budget=3000
 sysctl -w net.ipv4.tcp_autocorking=0
 sysctl -w net.ipv4.tcp_min_rtt_wlen=60
-sysctl -w net.ipv4.tcp_tso_win_divisor=1
-sysctl -w net.ipv4.tcp_notsent_lowat=262144
+sysctl -w net.ipv4.tcp_tso_win_divisor=2
+sysctl -w net.ipv4.tcp_pacing_ss_ratio=220
+sysctl -w net.ipv4.tcp_pacing_ca_ratio=150
+sysctl -w net.ipv4.tcp_notsent_lowat=131072
+sysctl -w net.ipv4.tcp_limit_output_bytes=8388608
+sysctl -w net.ipv4.tcp_mtu_probing=2
+sysctl -w net.ipv4.tcp_base_mss=1360
+sysctl -w net.ipv4.tcp_probe_interval=60
+sysctl -w net.ipv4.tcp_probe_threshold=8
+sysctl -w net.ipv4.tcp_no_metrics_save=1
 tc qdisc replace dev ens5 root fq
 tc qdisc del dev ens5 root
 tc -s qdisc show dev ens5
@@ -39,59 +43,133 @@ tc -s qdisc show dev ens5
 wget -qO- https://raw.githubusercontent.com/uk0/lotspeed/main/install.sh | sudo bash
 lotspeed preset aggressive
 lotspeed set lotserver_adaptive 0
-
-lotspeed set lotserver_rate 50000000
-lotspeed set lotserver_gain 32
-lotspeed set lotserver_beta 896
-lotspeed set lotserver_max_cwnd 8000
-lotspeed set lotserver_min_cwnd 48
+lotspeed set lotserver_rate 45000000
+lotspeed set lotserver_gain 28
+lotspeed set lotserver_beta 820
+lotspeed set lotserver_max_cwnd 6000
+lotspeed set lotserver_min_cwnd 32
 sysctl -w net.ipv4.tcp_no_metrics_save=1
-sysctl -w net.ipv4.tcp_autocorking=1
-sysctl -w net.ipv4.tcp_min_rtt_wlen=20
-sysctl -w net.ipv4.tcp_tso_win_divisor=1
-sysctl -w net.ipv4.tcp_pacing_ss_ratio=260
-sysctl -w net.ipv4.tcp_pacing_ca_ratio=120
-sysctl -w net.ipv4.tcp_notsent_lowat=131072   
-sysctl -w net.ipv4.tcp_mtu_probing=1
-sysctl -w net.ipv4.tcp_probe_interval=45
-sysctl -w net.ipv4.tcp_probe_threshold=6
 
 
-cat > /usr/local/bin/push_node_c.sh << 'EOF'
+cat > /usr/local/bin/push_node_my.sh << 'EOF'
 #!/bin/bash
+
 API_URL="https://nodecenter.hiccupc.xyz/push"
 TOKEN="hiccupcc"
-NODE_NAME="node_c"
-CHECK_IP="47.116.126.134"
+NODE_NAME_V4="node_my"
+NODE_NAME_V6="node_my6"
+CHECK_IP_V4="47.116.126.134"
+
+CHANGE_COOLDOWN=90
+LAST_CHANGE_FILE="/tmp/node_my_last_change_ip"
+LOG_FILE="/var/log/nodecenter_node_my.log"
+
+AWS_SB_AUTH_TOKEN="e85a4ba72df64a2c90f97ef45b2dc211"
+AWS_SB_SHARE_GROUP_TOKEN="711485a7d8634926b47ca0d994e08c5a"
+
+log() {
+  echo "[$(date '+%F %T')] $*" >> "$LOG_FILE"
+}
+
+get_aws_token() {
+  curl -s -X PUT "http://169.254.169.254/latest/api/token" \
+    -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"
+}
 
 get_instance_id() {
-  TOKEN_AWS=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" || true)
+  local TOKEN_AWS
+  TOKEN_AWS=$(get_aws_token || true)
+
   if [ -n "$TOKEN_AWS" ]; then
-    curl -s -H "X-aws-ec2-metadata-token: $TOKEN_AWS" http://169.254.169.254/latest/meta-data/instance-id
+    curl -s -H "X-aws-ec2-metadata-token: $TOKEN_AWS" \
+      http://169.254.169.254/latest/meta-data/instance-id
   else
     hostname
   fi
 }
 
-get_public_ip() {
-  curl -4 -s --max-time 10 https://api.ipify.org
+get_region_from_share_api() {
+  local INSTANCE_ID="$1"
+
+  curl -s "https://api.aws.sb/ec2-instance-shares?r=$(tr -dc 'a-z0-9' </dev/urandom | head -c 11)" \
+    -H "Accept: application/json, text/plain, */*" \
+    -H "Origin: https://aws.sb" \
+    -H "X-Auth-Token: ${AWS_SB_AUTH_TOKEN}" \
+    -H "X-Share-Group-Token: ${AWS_SB_SHARE_GROUP_TOKEN}" \
+    | grep -oP '{[^}]*"instanceId"\s*:\s*"'$INSTANCE_ID'"[^}]*"regionName"\s*:\s*"\K[^"]+'
 }
 
-check_ping() {
-  ping -c 1 -W 2 "$CHECK_IP" >/dev/null 2>&1
+get_public_ipv4() {
+  curl -4 -s --max-time 5 https://api.ipify.org || \
+  curl -4 -s --max-time 5 https://ifconfig.me || \
+  curl -4 -s --max-time 5 https://ipv4.icanhazip.com
 }
 
-NODE_ID=$(get_instance_id)
+get_public_ipv6() {
+  curl -6 -s --max-time 5 https://api64.ipify.org || \
+  curl -6 -s --max-time 5 https://ifconfig.co || \
+  curl -6 -s --max-time 5 https://ipv6.icanhazip.com
+}
 
-push_ip() {
-  PUBLIC_IP=$(get_public_ip)
-  [ -z "$PUBLIC_IP" ] && return 1
+check_ping_v4() {
+  ping -c 1 -W 2 "$CHECK_IP_V4" >/dev/null 2>&1
+}
 
-  if check_ping; then
-    PING_OK=true
-  else
-    PING_OK=false
+random_r() {
+  tr -dc 'a-z0-9' < /dev/urandom | head -c 11
+}
+
+change_ip() {
+  local NOW LAST R REGION_NAME CHANGE_IP_URL NODE_ID
+
+  NOW=$(date +%s)
+  LAST=0
+  [ -f "$LAST_CHANGE_FILE" ] && LAST=$(cat "$LAST_CHANGE_FILE")
+
+  if [ $((NOW - LAST)) -lt "$CHANGE_COOLDOWN" ]; then
+    return 0
   fi
+
+  NODE_ID=$(get_instance_id)
+
+  if [ -z "$NODE_ID" ]; then
+    log "node_my change ip skipped: NODE_ID empty"
+    return 1
+  fi
+
+  REGION_NAME=$(get_region_from_share_api "$NODE_ID")
+
+  if [ -z "$REGION_NAME" ]; then
+    log "node_my change ip skipped: region not found for instance=${NODE_ID}"
+    return 1
+  fi
+
+  CHANGE_IP_URL="https://api.aws.sb/ec2-instances/${NODE_ID}/ip-address"
+  R=$(random_r)
+
+  log "node_my change ip... instance=${NODE_ID} region=${REGION_NAME}"
+
+  curl -s -X PATCH "${CHANGE_IP_URL}?r=${R}" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json, text/plain, */*" \
+    -H "Origin: https://aws.sb" \
+    -H "X-Auth-Token: ${AWS_SB_AUTH_TOKEN}" \
+    -H "X-Region-Name: ${REGION_NAME}" \
+    -H "X-Share-Group-Token: ${AWS_SB_SHARE_GROUP_TOKEN}" \
+    -d '{"ipAddress":""}' \
+    --max-time 30 >> "$LOG_FILE" 2>&1
+
+  echo "$NOW" > "$LAST_CHANGE_FILE"
+  sleep 30
+}
+
+push_one() {
+  local NODE_NAME="$1"
+  local NODE_ID="$2"
+  local IP="$3"
+  local PING_OK="$4"
+
+  [ -z "$IP" ] && return 1
 
   curl -s -X POST "$API_URL" \
     -H "Content-Type: application/json" \
@@ -99,28 +177,46 @@ push_ip() {
       \"token\":\"$TOKEN\",
       \"name\":\"$NODE_NAME\",
       \"node_id\":\"$NODE_ID\",
-      \"ip\":\"$PUBLIC_IP\",
+      \"ip\":\"$IP\",
       \"ping_ok\":$PING_OK
-    }"
+    }" >/dev/null 2>&1
 }
 
 while true; do
-  push_ip >/dev/null 2>&1 || true
+  NODE_ID=$(get_instance_id | tr -d ' \n\r')
+  IPV4=$(get_public_ipv4 | tr -d ' \n\r')
+  IPV6=$(get_public_ipv6 | tr -d ' \n\r')
+
+  if check_ping_v4; then
+    PING_OK_V4=true
+  else
+    PING_OK_V4=false
+    change_ip
+    NODE_ID=$(get_instance_id | tr -d ' \n\r')
+    IPV4=$(get_public_ipv4 | tr -d ' \n\r')
+    IPV6=$(get_public_ipv6 | tr -d ' \n\r')
+  fi
+
+  PING_OK_V6=true
+
+  push_one "$NODE_NAME_V4" "$NODE_ID" "$IPV4" "$PING_OK_V4"
+  push_one "$NODE_NAME_V6" "$NODE_ID" "$IPV6" "$PING_OK_V6"
+
   sleep 10
 done
 EOF
 
-chmod +x /usr/local/bin/push_node_c.sh
+chmod +x /usr/local/bin/push_node_my.sh
 
-cat > /etc/systemd/system/nodecenter-node_c.service << 'EOF'
+cat > /etc/systemd/system/nodecenter-node_my.service << 'EOF'
 [Unit]
-Description=NodeCenter Push Service for node_c
+Description=NodeCenter Push Service for node_my and node_my6
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/push_node_c.sh
+ExecStart=/usr/local/bin/push_node_my.sh
 Restart=always
 RestartSec=3
 User=root
@@ -130,6 +226,6 @@ WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable nodecenter-node_c.service
-systemctl restart nodecenter-node_c.service
-systemctl status nodecenter-node_c.service --no-pager
+systemctl enable nodecenter-node_my.service
+systemctl restart nodecenter-node_my.service
+systemctl status nodecenter-node_my.service --no-pager -l
