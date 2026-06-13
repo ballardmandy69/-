@@ -50,6 +50,11 @@ lotspeed set lotserver_max_cwnd 6000
 lotspeed set lotserver_min_cwnd 32
 sysctl -w net.ipv4.tcp_no_metrics_save=1
 
+#!/bin/bash
+# AWS node_a + node_a6 一键安装脚本
+# IPv4 探测失败时，同时更换 IPv4 并重新分配一个 IPv6
+
+
 
 cat > /usr/local/bin/push_node_a.sh << 'EOF'
 #!/bin/bash
@@ -59,9 +64,11 @@ TOKEN="hiccupcc"
 NODE_NAME_V4="node_a"
 NODE_NAME_V6="node_a6"
 CHECK_IP_V4="47.116.126.134"
+CHECK_IP_V6="2408:4002:1350:300:78f:ab91:32c0:615c"
 
 CHANGE_COOLDOWN=90
-LAST_CHANGE_FILE="/tmp/node_a_last_change_ip"
+LAST_CHANGE_FILE_V4="/tmp/node_a_last_change_ip"
+LAST_CHANGE_FILE_V6="/tmp/node_a_last_change_ipv6"
 LOG_FILE="/var/log/nodecenter_node_a.log"
 
 AWS_SB_AUTH_TOKEN="e85a4ba72df64a2c90f97ef45b2dc211"
@@ -115,16 +122,21 @@ check_ping_v4() {
   ping -c 1 -W 2 "$CHECK_IP_V4" >/dev/null 2>&1
 }
 
+check_ping_v6() {
+  ping -6 -c 1 -W 2 "$CHECK_IP_V6" >/dev/null 2>&1
+}
+
 random_r() {
   tr -dc 'a-z0-9' < /dev/urandom | head -c 11
 }
 
-change_ip() {
-  local NOW LAST R REGION_NAME CHANGE_IP_URL NODE_ID
+change_ipv4() {
+  local NOW LAST REGION_NAME CHANGE_IPV4_URL NODE_ID
+  local R_IPV4 IPV4_RESP
 
   NOW=$(date +%s)
   LAST=0
-  [ -f "$LAST_CHANGE_FILE" ] && LAST=$(cat "$LAST_CHANGE_FILE")
+  [ -f "$LAST_CHANGE_FILE_V4" ] && LAST=$(cat "$LAST_CHANGE_FILE_V4")
 
   if [ $((NOW - LAST)) -lt "$CHANGE_COOLDOWN" ]; then
     return 0
@@ -144,12 +156,12 @@ change_ip() {
     return 1
   fi
 
-  CHANGE_IP_URL="https://api.aws.sb/ec2-instances/${NODE_ID}/ip-address"
-  R=$(random_r)
+  CHANGE_IPV4_URL="https://api.aws.sb/ec2-instances/${NODE_ID}/ip-address"
+  R_IPV4=$(random_r)
 
-  log "node_a change ip... instance=${NODE_ID} region=${REGION_NAME}"
+  log "node_a change ipv4... instance=${NODE_ID} region=${REGION_NAME}"
 
-  curl -s -X PATCH "${CHANGE_IP_URL}?r=${R}" \
+  IPV4_RESP=$(curl -s -X PATCH "${CHANGE_IPV4_URL}?r=${R_IPV4}" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json, text/plain, */*" \
     -H "Origin: https://aws.sb" \
@@ -157,9 +169,56 @@ change_ip() {
     -H "X-Region-Name: ${REGION_NAME}" \
     -H "X-Share-Group-Token: ${AWS_SB_SHARE_GROUP_TOKEN}" \
     -d '{"ipAddress":""}' \
-    --max-time 30 >> "$LOG_FILE" 2>&1
+    --max-time 30 2>&1)
 
-  echo "$NOW" > "$LAST_CHANGE_FILE"
+  log "node_a ipv4 change resp=${IPV4_RESP}"
+
+  echo "$NOW" > "$LAST_CHANGE_FILE_V4"
+  sleep 30
+}
+
+change_ipv6() {
+  local NOW LAST REGION_NAME CHANGE_IPV6_URL NODE_ID
+  local R_IPV6 IPV6_RESP
+
+  NOW=$(date +%s)
+  LAST=0
+  [ -f "$LAST_CHANGE_FILE_V6" ] && LAST=$(cat "$LAST_CHANGE_FILE_V6")
+
+  if [ $((NOW - LAST)) -lt "$CHANGE_COOLDOWN" ]; then
+    return 0
+  fi
+
+  NODE_ID=$(get_instance_id)
+
+  if [ -z "$NODE_ID" ]; then
+    log "node_a change ipv6 skipped: NODE_ID empty"
+    return 1
+  fi
+
+  REGION_NAME=$(get_region_from_share_api "$NODE_ID")
+
+  if [ -z "$REGION_NAME" ]; then
+    log "node_a change ipv6 skipped: region not found for instance=${NODE_ID}"
+    return 1
+  fi
+
+  CHANGE_IPV6_URL="https://api.aws.sb/ec2-instances/${NODE_ID}/ipv6/addresses"
+  R_IPV6=$(random_r)
+
+  log "node_a change ipv6... instance=${NODE_ID} region=${REGION_NAME}"
+
+  IPV6_RESP=$(curl -s -X PUT "${CHANGE_IPV6_URL}?r=${R_IPV6}" \
+    -H "Accept: application/json, text/plain, */*" \
+    -H "Origin: https://aws.sb" \
+    -H "X-Auth-Token: ${AWS_SB_AUTH_TOKEN}" \
+    -H "X-Region-Name: ${REGION_NAME}" \
+    -H "X-Share-Group-Token: ${AWS_SB_SHARE_GROUP_TOKEN}" \
+    --max-time 30 2>&1)
+
+  log "node_a ipv6 allocate resp=${IPV6_RESP}"
+
+  echo "$NOW" > "$LAST_CHANGE_FILE_V6"
   sleep 30
 }
 
@@ -192,18 +251,29 @@ while true; do
   NODE_ID=$(get_instance_id | tr -d ' \n\r')
   IPV4=$(get_public_ipv4 | tr -d ' \n\r')
   IPV6=$(get_public_ipv6 | tr -d ' \n\r')
+  REFRESH_IPS=false
 
   if check_ping_v4; then
     PING_OK_V4=true
   else
     PING_OK_V4=false
-    change_ip
+    change_ipv4
+    REFRESH_IPS=true
+  fi
+
+  if check_ping_v6; then
+    PING_OK_V6=true
+  else
+    PING_OK_V6=false
+    change_ipv6
+    REFRESH_IPS=true
+  fi
+
+  if [ "$REFRESH_IPS" = true ]; then
     NODE_ID=$(get_instance_id | tr -d ' \n\r')
     IPV4=$(get_public_ipv4 | tr -d ' \n\r')
     IPV6=$(get_public_ipv6 | tr -d ' \n\r')
   fi
-
-  PING_OK_V6=true
 
   push_one "$NODE_NAME_V4" "$NODE_ID" "$IPV4" "$PING_OK_V4"
   push_one "$NODE_NAME_V6" "$NODE_ID" "$IPV6" "$PING_OK_V6"
