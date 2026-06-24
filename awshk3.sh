@@ -11,9 +11,9 @@ sysctl -w net.core.wmem_max=33554432
 sysctl -w net.ipv4.tcp_rmem="8192 262144 33554432"
 sysctl -w net.ipv4.tcp_wmem="4096 262144 33554432"
 sysctl -w net.ipv4.tcp_early_retrans=2
-sysctl -w net.ipv4.tcp_recovery=3      
+sysctl -w net.ipv4.tcp_recovery=1      
 sysctl -w net.ipv4.tcp_retries1=2
-sysctl -w net.ipv4.tcp_retries2=5
+sysctl -w net.ipv4.tcp_retries2=8
 sysctl -w net.ipv4.tcp_syn_retries=3
 sysctl -w net.ipv4.tcp_frto=2
 sysctl -w net.ipv4.tcp_reordering=10 
@@ -26,8 +26,8 @@ sysctl -w net.ipv4.tcp_min_rtt_wlen=60
 sysctl -w net.ipv4.tcp_tso_win_divisor=2
 sysctl -w net.ipv4.tcp_pacing_ss_ratio=220
 sysctl -w net.ipv4.tcp_pacing_ca_ratio=150
-sysctl -w net.ipv4.tcp_notsent_lowat=131072
-sysctl -w net.ipv4.tcp_limit_output_bytes=8388608
+sysctl -w net.ipv4.tcp_notsent_lowat=16384
+sysctl -w net.ipv4.tcp_limit_output_bytes=2097152
 sysctl -w net.ipv4.tcp_mtu_probing=2
 sysctl -w net.ipv4.tcp_base_mss=1360
 sysctl -w net.ipv4.tcp_probe_interval=60
@@ -42,7 +42,7 @@ tc -s qdisc show dev ens5
 
 wget -qO- https://raw.githubusercontent.com/ballardmandy69/lotspeed-main-enhanced/main/install-v352.sh | sudo bash
 lotspeed preset domestic-mixed
-lotspeed status
+sysctl -w net.ipv4.tcp_no_metrics_save=1
 
 
 cat > /usr/local/bin/push_node_my.sh << 'EOF'
