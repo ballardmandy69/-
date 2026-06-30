@@ -43,6 +43,10 @@ tc -s qdisc show dev ens5
 wget -qO- https://raw.githubusercontent.com/ballardmandy69/lotspeed-main-enhanced/main/install-v352.sh | sudo bash
 lotspeed preset domestic-mixed
 sysctl -w net.ipv4.tcp_no_metrics_save=1
+
+#!/bin/bash
+# AWS node_hk + node_hk6 install script.
+
 cat > /usr/local/bin/push_node_hk.sh << 'EOF'
 #!/bin/bash
 
@@ -52,6 +56,8 @@ NODE_NAME_V4="node_hk"
 NODE_NAME_V6="node_hk6"
 CHECK_IP_V4="47.116.126.134"
 CHECK_IP_V6="2408:4002:1350:300:78f:ab91:32c0:615c"
+FAIL_THRESHOLD_V4=6
+FAIL_THRESHOLD_V6=6
 
 CHANGE_COOLDOWN=90
 LAST_CHANGE_FILE_V4="/tmp/node_hk_last_change_ip"
@@ -233,21 +239,37 @@ while true; do
   IPV4=$(get_public_ipv4 | tr -d ' \n\r')
   IPV6=$(get_public_ipv6 | tr -d ' \n\r')
   REFRESH_IPS=false
+  [ -z "${V4_FAIL_COUNT+x}" ] && V4_FAIL_COUNT=0
+  [ -z "${V6_FAIL_COUNT+x}" ] && V6_FAIL_COUNT=0
 
   if check_ping_v4; then
+    V4_FAIL_COUNT=0
     PING_OK_V4=true
   else
-    PING_OK_V4=false
-    change_ipv4
-    REFRESH_IPS=true
+    V4_FAIL_COUNT=$((V4_FAIL_COUNT + 1))
+    log "node_hk v4 ping failed count=${V4_FAIL_COUNT}/${FAIL_THRESHOLD_V4}"
+    if [ "$V4_FAIL_COUNT" -ge "$FAIL_THRESHOLD_V4" ]; then
+      PING_OK_V4=false
+      change_ipv4
+      REFRESH_IPS=true
+    else
+      PING_OK_V4=true
+    fi
   fi
 
   if check_ping_v6; then
+    V6_FAIL_COUNT=0
     PING_OK_V6=true
   else
-    PING_OK_V6=false
-    change_ipv6
-    REFRESH_IPS=true
+    V6_FAIL_COUNT=$((V6_FAIL_COUNT + 1))
+    log "node_hk v6 ping failed count=${V6_FAIL_COUNT}/${FAIL_THRESHOLD_V6}"
+    if [ "$V6_FAIL_COUNT" -ge "$FAIL_THRESHOLD_V6" ]; then
+      PING_OK_V6=false
+      change_ipv6
+      REFRESH_IPS=true
+    else
+      PING_OK_V6=true
+    fi
   fi
 
   if [ "$REFRESH_IPS" = true ]; then
