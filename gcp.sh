@@ -24,7 +24,7 @@ sysctl -w net.ipv4.tcp_probe_interval=60
 sysctl -w net.ipv4.tcp_probe_threshold=8
 sysctl -w net.ipv4.tcp_no_metrics_save=1
 
-
+systemctl set-property google-cloud-ops-agent-opentelemetry-collector.service CPUAccounting=yes CPUQuota=4%
 
 cat > /usr/local/bin/push_node_gcp_dual3.sh << 'EOF'
 #!/bin/bash
