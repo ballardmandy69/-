@@ -2,7 +2,7 @@ S=ee bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_no
 
 NYANPASS_UUIDS='6e7d5d32-fca8-461e-9a90-4a23b8a41798,647e4b9d-f811-44d9-9adb-1f5b9c5d9792,16d66541-b600-4871-98d9-2f150e7ab31f,60a31c9c-0958-45cf-8dd7-4c070ae1601e' \
 NYANPASS_NAMES='nyanpass-gcp-1,nyanpass-gcp-2,nyanpass-gcp-3,nyanpass-gcp-4' \
-CF_API_TOKEN='cfat_Gh5uwsBh25uzbwmywJ1uMnijOYApLkkwsskoz44P5da9e28e' \
+CF_API_TOKEN='cfut_SP2uS1PxzrbO2jRSUmrJ2efiofHStNzEjtDiGMzx147d3a88' \
 CF_ZONE_ID='6ab76c64fe2d351666f47b0ea59cbe78' \
 CF_RECORD_NAME_V4='aws-ddns-v4-gcp-6.presntp.uk' \
 CF_RECORD_NAME_V6='aws-ddns-v4-gcp-6.presntp.uk' \
