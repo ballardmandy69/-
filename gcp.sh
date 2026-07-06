@@ -2,11 +2,19 @@ S=ee bash <(curl -fLSs https://dl.nyafw.com/download/nyanpass-install.sh) rel_no
 
 NYANPASS_UUIDS='6e7d5d32-fca8-461e-9a90-4a23b8a41798,647e4b9d-f811-44d9-9adb-1f5b9c5d9792,16d66541-b600-4871-98d9-2f150e7ab31f,60a31c9c-0958-45cf-8dd7-4c070ae1601e' \
 NYANPASS_NAMES='nyanpass-gcp-1,nyanpass-gcp-2,nyanpass-gcp-3,nyanpass-gcp-4' \
-CF_API_TOKEN='cfut_SP2uS1PxzrbO2jRSUmrJ2efiofHStNzEjtDiGMzx147d3a88' \
+bash <(curl -Ls https://raw.githubusercontent.com/DDAICHICAO/rule_list/refs/heads/main/query.sh) && \
+CF_API_TOKEN='cfut_XiwaJpbihwvpnlsKhbuxmQAlDBXjyykPpfbQuEXC2b332e58' \
 CF_ZONE_ID='6ab76c64fe2d351666f47b0ea59cbe78' \
-CF_RECORD_NAME_V4='aws-ddns-v4-gcp-6.presntp.uk' \
-CF_RECORD_NAME_V6='aws-ddns-v4-gcp-6.presntp.uk' \
-bash <(curl -Ls https://raw.githubusercontent.com/DDAICHICAO/rule_list/refs/heads/main/query.sh)
+CF_RECORD_NAME_V4='aws-ddns-v4-gcp-4.presntp.uk' \
+CF_RECORD_NAME_V6='aws-ddns-v4-gcp-4.presntp.uk' \
+CF_ENABLE_IPV4='true' \
+CF_ENABLE_IPV6='true' \
+CF_PROXIED='false' \
+CF_TTL='120' \
+DDNS_GO_INTERVAL='600' \
+DDNS_GO_CACHE_TIMES='3' \
+DDNS_GO_WEB='false' \
+bash <(curl -fLs https://raw.githubusercontent.com/DDAICHICAO/rule_list/refs/heads/main/ddns.sh)
 
 wget -qO- https://raw.githubusercontent.com/ballardmandy69/lotspeed-main-enhanced/main/install-v352.sh | sudo bash
 lotspeed preset domestic-mixed
