@@ -42,8 +42,8 @@ tc -s qdisc show dev ens5
 
 
 
-wget -qO- https://raw.githubusercontent.com/ballardmandy69/lotspeed-main-enhanced/main/install-v352.sh | sudo bash
-lotspeed preset domestic-mixed
+wget -qO- https://raw.githubusercontent.com/ballardmandy69/lotspeed-main-enhanced/main/install-v363.sh | sudo bash
+lotspeed preset mux-throughput
 sysctl -w net.ipv4.tcp_no_metrics_save=1
 
 
